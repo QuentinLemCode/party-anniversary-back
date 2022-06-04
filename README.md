@@ -13,6 +13,9 @@ Features :
 * Connect using their name and a secret question
   * one account per IP adress
 
+## Todo
+  Handle spotify rate limits
+
 ## Installation
 
 ```bash
