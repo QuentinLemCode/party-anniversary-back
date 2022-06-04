@@ -46,7 +46,7 @@ export class MusicController {
         album: track.album.name,
         artist: track.artists.map((artist) => artist.name).join(', '),
         cover: track.album.images[0].url,
-        id: track.id,
+        uri: track.uri,
         title: track.name,
       };
     });
