@@ -31,7 +31,7 @@ export class MusicController {
     const scope =
       'user-modify-playback-state user-read-playback-state user-read-currently-playing user-read-recently-played user-read-playback-state';
 
-    const url = new URL('https://accouts.spotify.com/authorize');
+    const url = new URL('https://accounts.spotify.com/authorize');
     const client_id = process.env.SPOTIFY_CLIENT_ID;
     if (!client_id)
       throw new ServiceUnavailableException(
