@@ -3,7 +3,7 @@ import { Music } from '../interfaces/music';
 
 @Controller('music')
 export class MusicController {
-  @Post()
+  @Post('search')
   search(query: string): Music[] {
     return [
       {
