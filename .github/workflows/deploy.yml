@@ -12,6 +12,12 @@ jobs:
     name: "Deploy ⚡"
     runs-on: ubuntu-latest
     steps:
+      - name: Wait for current deployment
+        uses: softprops/turnstyle@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          abort-after-seconds: 300
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh/
