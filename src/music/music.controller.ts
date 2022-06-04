@@ -1,4 +1,10 @@
-import { BadRequestException, Controller, Get, Query } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Query,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { SpotifyApiService } from '../external/spotify-api/spotify-api.service';
 import { SearchResults } from '../external/spotify-api/spotify-interfaces';
@@ -26,10 +32,15 @@ export class MusicController {
       'user-modify-playback-state user-read-playback-state user-read-currently-playing user-read-recently-played user-read-playback-state';
 
     const url = new URL('https://accouts.spotify.com/authorize');
+    const client_id = process.env.SPOTIFY_CLIENT_ID;
+    if (!client_id)
+      throw new ServiceUnavailableException(
+        'Spotify client ID not set on server',
+      );
 
     const params = {
       response_type: 'code',
-      client_id: process.env.SPOTIFY_CLIENT_ID,
+      client_id: client_id,
       scope: scope,
       redirect_uri: 'http://localhost:4200/admin/spotify_auth',
       state: state,
