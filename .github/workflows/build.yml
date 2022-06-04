@@ -1,7 +1,7 @@
-name: push
+name: Build and push
 on: 
   push:
-    branches: [master]
+    branches: [main, develop]
   workflow_dispatch: 
 
 jobs:
