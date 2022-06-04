@@ -1,3 +1,4 @@
+import { HttpModule } from '@nestjs/axios';
 import { Test, TestingModule } from '@nestjs/testing';
 import { SpotifyApiService } from './spotify-api.service';
 
@@ -7,6 +8,7 @@ describe('SpotifyApiService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [SpotifyApiService],
+      imports: [HttpModule],
     }).compile();
 
     service = module.get<SpotifyApiService>(SpotifyApiService);

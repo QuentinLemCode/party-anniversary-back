@@ -1,4 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { EMPTY } from 'rxjs';
+import { SpotifyApiService } from '../external/spotify-api/spotify-api.service';
 import { MusicController } from './music.controller';
 
 describe('MusicController', () => {
@@ -7,6 +9,14 @@ describe('MusicController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [MusicController],
+      providers: [
+        {
+          provide: SpotifyApiService,
+          useValue: {
+            search: () => EMPTY,
+          },
+        },
+      ],
     }).compile();
 
     controller = module.get<MusicController>(MusicController);
