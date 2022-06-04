@@ -8,7 +8,8 @@ on:
   
 
 jobs:
-  on-success:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     name: "Deploy ⚡"
     runs-on: ubuntu-latest
     steps:
