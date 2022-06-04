@@ -40,7 +40,7 @@ jobs:
 
       - name: Launch updated container
         if: ${{ always() }}
-        run: ssh server 'docker-compose up -d --no-deps backend'
+        run: ssh server 'docker-compose up -d --no-deps --build backend'
 
       - name: Clean old images
         run: ssh server 'docker image prune -f'
