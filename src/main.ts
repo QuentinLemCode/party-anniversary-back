@@ -11,7 +11,7 @@ async function bootstrap() {
     new FastifyAdapter(),
   );
   app.enableCors({
-    origin: 'localhost',
+    origin: 'http://localhost:4200',
   });
   await app.listen(3000, '0.0.0.0');
 }
