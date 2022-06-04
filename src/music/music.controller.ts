@@ -42,7 +42,7 @@ export class MusicController {
       response_type: 'code',
       client_id: client_id,
       scope: scope,
-      redirect_uri: 'http://localhost:4200/admin/spotify_auth',
+      redirect_uri: 'http://localhost:4200/admin/spotify-auth',
       state: state,
     };
     Object.entries(params).forEach(([key, value]) => {
