@@ -4,5 +4,6 @@ declare namespace NodeJS {
     SPOTIFY_CLIENT_KEY: string;
     ORIGIN: string;
     PORT: number;
+    PREFIX: string;
   }
 }

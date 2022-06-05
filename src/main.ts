@@ -11,6 +11,9 @@ async function bootstrap() {
     AppModule,
     new FastifyAdapter(),
   );
+  if (env.PREFIX) {
+    app.setGlobalPrefix(env.PREFIX);
+  }
   app.enableCors({
     origin: env.ORIGIN,
   });
