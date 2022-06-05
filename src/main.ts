@@ -3,6 +3,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
+import { env } from 'process';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -11,8 +12,8 @@ async function bootstrap() {
     new FastifyAdapter(),
   );
   app.enableCors({
-    origin: 'http://localhost:4200',
+    origin: env.ORIGIN,
   });
-  await app.listen(3000, '0.0.0.0');
+  await app.listen(env.PORT, '0.0.0.0');
 }
 bootstrap();
