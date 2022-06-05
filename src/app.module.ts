@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserService } from './user/user.service';
 import { UserController } from './user/user.controller';
 import { User } from './user/user.entity';
+import { env } from 'process';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { User } from './user/user.entity';
       database: './database/db.sql',
       entities: [User],
       autoLoadEntities: true,
+      synchronize: true,
     }),
     TypeOrmModule.forFeature([User]),
   ],
