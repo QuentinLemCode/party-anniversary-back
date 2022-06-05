@@ -2,7 +2,16 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { AxiosResponse } from 'axios';
 import { env } from 'process';
-import { first, map, mergeMap, Observable, of, tap } from 'rxjs';
+import {
+  catchError,
+  EMPTY,
+  first,
+  map,
+  mergeMap,
+  Observable,
+  of,
+  tap,
+} from 'rxjs';
 import { SearchResults } from './spotify-interfaces';
 import { Token, TokenWithCalculatedExpiration } from './token';
 
@@ -54,6 +63,10 @@ export class SpotifyApiService implements OnModuleInit {
     return this.getToken().pipe(
       map((response) => response.data),
       tap((token) => this.saveToken(token)),
+      catchError((error) => {
+        console.error(error);
+        return EMPTY;
+      }),
     );
   }
 
