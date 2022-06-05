@@ -1,13 +1,12 @@
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { SpotifyApiService } from './external/spotify-api/spotify-api.service';
 import { MusicController } from './music/music.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserService } from './user/user.service';
 import { UserController } from './user/user.controller';
 import { User } from './user/user.entity';
-import { env } from 'process';
+import { UserService } from './user/user.service';
 
 @Module({
   imports: [
