@@ -6,6 +6,7 @@ import { MusicController } from './music/music.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserService } from './user/user.service';
 import { UserController } from './user/user.controller';
+import { User } from './user/user.entity';
 
 @Module({
   imports: [
@@ -14,8 +15,10 @@ import { UserController } from './user/user.controller';
     TypeOrmModule.forRoot({
       type: 'better-sqlite3',
       database: './database/db.sql',
+      entities: [User],
       autoLoadEntities: true,
     }),
+    TypeOrmModule.forFeature([User]),
   ],
   controllers: [MusicController, UserController],
   providers: [SpotifyApiService, UserService],
