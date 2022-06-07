@@ -1,4 +1,4 @@
-FROM node:16-alpine3.14 as builder
+FROM arm32v6/node:16-alpine3.14 as builder
 
 ENV NODE_ENV build
 
@@ -9,7 +9,7 @@ COPY . /home/node
 RUN npm ci \
     && npm run build \
     && npm prune --production
-
+RUN npm i sqlite3
 # ---
 
 FROM arm32v6/node:16-alpine3.14
