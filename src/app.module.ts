@@ -13,7 +13,7 @@ import { UserService } from './user/user.service';
     HttpModule,
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
-      type: 'better-sqlite3',
+      type: 'sqlite',
       database: './database/db.sql',
       entities: [User],
       autoLoadEntities: true,
