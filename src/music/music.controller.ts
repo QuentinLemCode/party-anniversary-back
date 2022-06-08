@@ -4,8 +4,10 @@ import {
   Get,
   Query,
   ServiceUnavailableException,
+  UseGuards,
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
+import { JwtGuard } from 'src/auth/jwt.guard';
 import { SpotifyApiService } from '../external/spotify-api/spotify-api.service';
 import { SearchResults } from '../external/spotify-api/spotify-interfaces';
 import { Music } from '../interfaces/music';
@@ -13,6 +15,7 @@ import { Music } from '../interfaces/music';
 export class MusicController {
   constructor(private spotify: SpotifyApiService) {}
 
+  @UseGuards(JwtGuard)
   @Get('search')
   async search(@Query('query') query: string): Promise<Music[]> {
     if (!query) throw new BadRequestException('no query');

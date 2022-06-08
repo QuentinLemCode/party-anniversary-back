@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
-import { RegisterUserDTO } from './user.interface';
+import { RegisterUserDTO } from './users.interface';
 
 @Injectable()
-export class UserService {
+export class UsersService {
   constructor(@InjectRepository(User) private users: Repository<User>) {}
 
   find(name: string) {

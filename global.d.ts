@@ -11,5 +11,6 @@ declare namespace NodeJS {
     DATABASE_PASSWORD?: string;
     DATABASE_NAME?: string;
     NODE_ENV: 'production' | 'developement' | 'build' | 'test';
+    JWT_SECRET?: string;
   }
 }

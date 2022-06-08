@@ -3,11 +3,10 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { env } from 'process';
+import { AuthModule } from './auth/auth.module';
 import { SpotifyApiService } from './external/spotify-api/spotify-api.service';
 import { MusicController } from './music/music.controller';
-import { UserController } from './user/user.controller';
-import { User } from './user/user.entity';
-import { UserService } from './user/user.service';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -20,13 +19,13 @@ import { UserService } from './user/user.service';
       username: env.DATABASE_USER || 'admin',
       password: env.DATABASE_PASSWORD || 'password',
       database: env.DATABASE_NAME || 'party-anniversary',
-      entities: [User],
       autoLoadEntities: true,
       synchronize: true,
     }),
-    TypeOrmModule.forFeature([User]),
+    AuthModule,
+    UsersModule,
   ],
-  controllers: [MusicController, UserController],
-  providers: [SpotifyApiService, UserService],
+  controllers: [MusicController],
+  providers: [SpotifyApiService],
 })
 export class AppModule {}
