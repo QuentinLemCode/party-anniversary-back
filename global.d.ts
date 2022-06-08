@@ -10,6 +10,6 @@ declare namespace NodeJS {
     DATABASE_USER?: string;
     DATABASE_PASSWORD?: string;
     DATABASE_NAME?: string;
-    NODE_ENV: 'production' | 'developement';
+    NODE_ENV: 'production' | 'developement' | 'build' | 'test';
   }
 }
