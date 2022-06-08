@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EMPTY } from 'rxjs';
+import { JwtGuard } from 'src/auth/jwt.guard';
 import { SpotifyApiService } from '../external/spotify-api/spotify-api.service';
 import { MusicController } from './music.controller';
 
@@ -15,6 +16,10 @@ describe('MusicController', () => {
           useValue: {
             search: () => EMPTY,
           },
+        },
+        {
+          provide: JwtGuard,
+          useValue: {},
         },
       ],
     }).compile();
