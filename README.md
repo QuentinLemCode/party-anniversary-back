@@ -18,8 +18,10 @@ Features :
 
 ## Installation
 
+Configure .env file
+
 ```bash
-$ npm install
+npm install
 ```
 
 ## Running the app
@@ -30,6 +32,9 @@ $ npm run start
 
 # watch mode
 $ npm run start:dev
+
+# debug mode
+$ npm run start:debug
 
 # production mode
 $ npm run start:prod

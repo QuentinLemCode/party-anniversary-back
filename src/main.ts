@@ -14,9 +14,11 @@ async function bootstrap() {
   if (env.PREFIX) {
     app.setGlobalPrefix(env.PREFIX);
   }
-  app.enableCors({
-    origin: env.ORIGIN,
-  });
-  await app.listen(env.PORT, '0.0.0.0');
+  if (env.ORIGIN) {
+    app.enableCors({
+      origin: env.ORIGIN,
+    });
+  }
+  await app.listen(env.PORT || 3000, '0.0.0.0');
 }
 bootstrap();
