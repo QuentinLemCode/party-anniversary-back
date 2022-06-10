@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
+import { User, UserRole } from '../users/user.entity';
 import { UserLogin } from './auth.interface';
 
 @Injectable()
@@ -10,14 +11,12 @@ export class AuthService {
   async validateUser(name: string, ip: string) {
     const user = await this.users.find(name);
     if (user && user.ip === ip) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { ip, ...result } = user;
-      return result;
+      return user;
     }
     return null;
   }
 
-  async login(user: any): Promise<UserLogin> {
+  async login(user: User): Promise<UserLogin> {
     const payload = { username: user.name, sub: user.id };
     const token = this.jwt.sign(payload);
     const expirationTimestamp = (
@@ -28,6 +27,7 @@ export class AuthService {
       id: user.id,
       expires_at: expirationTimestamp,
       username: user.name,
+      role: user.role === UserRole.ADMIN ? 'admin' : 'user',
     };
   }
 }

@@ -12,6 +12,10 @@ export class UsersService {
     return this.users.findOne({ where: { name } });
   }
 
+  findById(id: number) {
+    return this.users.findOneBy({ id });
+  }
+
   register(registerDTO: RegisterUserDTO, ip: string) {
     const user = this.users.create();
     user.name = registerDTO.name;
