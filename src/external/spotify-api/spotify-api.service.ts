@@ -18,7 +18,11 @@ import {
   tap,
 } from 'rxjs';
 import { querystring } from '../../utils/querystring';
-import { PlaybackStatus, SearchResults } from './spotify-interfaces';
+import {
+  PlaybackStatus,
+  SearchResults,
+  SpotifyURI,
+} from './spotify-interfaces';
 import {
   RegisteredPlayer,
   Token,
@@ -31,6 +35,10 @@ export class SpotifyApiService implements OnModuleInit {
   constructor(private http: HttpService) {}
   private currentToken: TokenWithCalculatedExpiration;
   private currentRegisteredPlayer: RegisteredPlayer;
+
+  private readonly formUrlContentTypeHeader = {
+    'Content-Type': 'application/x-www-form-urlencoded',
+  };
 
   onModuleInit() {
     this.loadToken().subscribe();
@@ -107,8 +115,38 @@ export class SpotifyApiService implements OnModuleInit {
   async getPlaybackState(): Promise<AxiosResponse<PlaybackStatus>> {
     return firstValueFrom(
       this.http.get('https://api.spotify.com/v1/me/player', {
-        headers: this.getAuthorizationHeaderForCurrentPlayer(),
+        headers: {
+          ...this.formUrlContentTypeHeader,
+          ...this.getAuthorizationHeaderForCurrentPlayer(),
+        },
       }),
+    );
+  }
+
+  async skipToNext() {
+    return firstValueFrom(
+      this.http.post(
+        'https://api.spotify.com/v1/me/player/next',
+        {},
+        {
+          headers: this.getAuthorizationHeaderForCurrentPlayer(),
+        },
+      ),
+    );
+  }
+
+  async addToQueue(uri: SpotifyURI<'track'>) {
+    return firstValueFrom(
+      this.http.post(
+        'https://api.spotify.com/v1/me/player/queue',
+        {},
+        {
+          headers: this.getAuthorizationHeaderForCurrentPlayer(),
+          params: {
+            uri,
+          },
+        },
+      ),
     );
   }
 

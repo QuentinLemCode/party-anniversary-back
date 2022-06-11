@@ -77,7 +77,7 @@ export type Track = {
       reason: string;
     };
     type: string;
-    uri: string;
+    uri: SpotifyURI;
     album_group: string;
     artists: Array<{
       external_urls: {
@@ -87,7 +87,7 @@ export type Track = {
       id: string;
       name: string;
       type: string;
-      uri: string;
+      uri: SpotifyURI;
     }>;
   };
   artists: Array<{
@@ -109,7 +109,7 @@ export type Track = {
     name: string;
     popularity: number;
     type: string;
-    uri: string;
+    uri: SpotifyURI;
   }>;
   available_markets: Array<string>;
   disc_number: number;
@@ -148,7 +148,7 @@ export type Track = {
         reason: string;
       };
       type: string;
-      uri: string;
+      uri: SpotifyURI;
       album_group: string;
       artists: Array<{
         external_urls: {
@@ -158,7 +158,7 @@ export type Track = {
         id: string;
         name: string;
         type: string;
-        uri: string;
+        uri: SpotifyURI;
       }>;
     };
     artists: Array<{
@@ -180,7 +180,7 @@ export type Track = {
       name: string;
       popularity: number;
       type: string;
-      uri: string;
+      uri: SpotifyURI;
     }>;
     available_markets: Array<string>;
     disc_number: number;
@@ -219,7 +219,7 @@ export type Track = {
           reason: string;
         };
         type: string;
-        uri: string;
+        uri: SpotifyURI;
         album_group: string;
         artists: Array<{
           external_urls: {
@@ -229,7 +229,7 @@ export type Track = {
           id: string;
           name: string;
           type: string;
-          uri: string;
+          uri: SpotifyURI;
         }>;
       };
       artists: Array<{
@@ -251,7 +251,7 @@ export type Track = {
         name: string;
         popularity: number;
         type: string;
-        uri: string;
+        uri: SpotifyURI;
       }>;
       available_markets: Array<string>;
       disc_number: number;
@@ -290,7 +290,7 @@ export type Track = {
             reason: string;
           };
           type: string;
-          uri: string;
+          uri: SpotifyURI;
           album_group: string;
           artists: Array<{
             external_urls: {
@@ -300,7 +300,7 @@ export type Track = {
             id: string;
             name: string;
             type: string;
-            uri: string;
+            uri: SpotifyURI;
           }>;
         };
         artists: Array<{
@@ -322,7 +322,7 @@ export type Track = {
           name: string;
           popularity: number;
           type: string;
-          uri: string;
+          uri: SpotifyURI;
         }>;
         available_markets: Array<string>;
         disc_number: number;
@@ -361,7 +361,7 @@ export type Track = {
               reason: string;
             };
             type: string;
-            uri: string;
+            uri: SpotifyURI;
             album_group: string;
             artists: Array<{
               external_urls: {
@@ -371,7 +371,7 @@ export type Track = {
               id: string;
               name: string;
               type: string;
-              uri: string;
+              uri: SpotifyURI;
             }>;
           };
           artists: Array<{
@@ -393,7 +393,7 @@ export type Track = {
             name: string;
             popularity: number;
             type: string;
-            uri: string;
+            uri: SpotifyURI;
           }>;
           available_markets: Array<string>;
           disc_number: number;
@@ -432,7 +432,7 @@ export type Track = {
                 reason: string;
               };
               type: string;
-              uri: string;
+              uri: SpotifyURI;
               album_group: string;
               artists: Array<{
                 external_urls: {
@@ -442,7 +442,7 @@ export type Track = {
                 id: string;
                 name: string;
                 type: string;
-                uri: string;
+                uri: SpotifyURI;
               }>;
             };
             artists: Array<{
@@ -464,7 +464,7 @@ export type Track = {
               name: string;
               popularity: number;
               type: string;
-              uri: string;
+              uri: SpotifyURI;
             }>;
             available_markets: Array<string>;
             disc_number: number;
@@ -503,7 +503,7 @@ export type Track = {
                   reason: string;
                 };
                 type: string;
-                uri: string;
+                uri: SpotifyURI;
                 album_group: string;
                 artists: Array<{
                   external_urls: {
@@ -513,7 +513,7 @@ export type Track = {
                   id: string;
                   name: string;
                   type: string;
-                  uri: string;
+                  uri: SpotifyURI;
                 }>;
               };
               artists: Array<{
@@ -535,7 +535,7 @@ export type Track = {
                 name: string;
                 popularity: number;
                 type: string;
-                uri: string;
+                uri: SpotifyURI;
               }>;
               available_markets: Array<string>;
               disc_number: number;
@@ -574,7 +574,7 @@ export type Track = {
                     reason: string;
                   };
                   type: string;
-                  uri: string;
+                  uri: SpotifyURI;
                   album_group: string;
                   artists: Array<{
                     external_urls: {
@@ -584,7 +584,7 @@ export type Track = {
                     id: string;
                     name: string;
                     type: string;
-                    uri: string;
+                    uri: SpotifyURI;
                   }>;
                 };
                 artists: Array<{
@@ -606,7 +606,7 @@ export type Track = {
                   name: string;
                   popularity: number;
                   type: string;
-                  uri: string;
+                  uri: SpotifyURI;
                 }>;
                 available_markets: Array<string>;
                 disc_number: number;
@@ -645,7 +645,7 @@ export type Track = {
                       reason: string;
                     };
                     type: string;
-                    uri: string;
+                    uri: SpotifyURI;
                     album_group: string;
                     artists: Array<{
                       external_urls: {
@@ -655,7 +655,7 @@ export type Track = {
                       id: string;
                       name: string;
                       type: string;
-                      uri: string;
+                      uri: SpotifyURI;
                     }>;
                   };
                   artists: Array<{
@@ -677,7 +677,7 @@ export type Track = {
                     name: string;
                     popularity: number;
                     type: string;
-                    uri: string;
+                    uri: SpotifyURI;
                   }>;
                   available_markets: Array<string>;
                   disc_number: number;
@@ -716,7 +716,7 @@ export type Track = {
                         reason: string;
                       };
                       type: string;
-                      uri: string;
+                      uri: SpotifyURI;
                       album_group: string;
                       artists: Array<{
                         external_urls: {
@@ -726,7 +726,7 @@ export type Track = {
                         id: string;
                         name: string;
                         type: string;
-                        uri: string;
+                        uri: SpotifyURI;
                       }>;
                     };
                     artists: Array<{
@@ -748,7 +748,7 @@ export type Track = {
                       name: string;
                       popularity: number;
                       type: string;
-                      uri: string;
+                      uri: SpotifyURI;
                     }>;
                     available_markets: Array<string>;
                     disc_number: number;
@@ -787,7 +787,7 @@ export type Track = {
                           reason: string;
                         };
                         type: string;
-                        uri: string;
+                        uri: SpotifyURI;
                         album_group: string;
                         artists: Array<{
                           external_urls: unknown;
@@ -795,7 +795,7 @@ export type Track = {
                           id: string;
                           name: string;
                           type: string;
-                          uri: string;
+                          uri: SpotifyURI;
                         }>;
                       };
                       artists: Array<{
@@ -813,7 +813,7 @@ export type Track = {
                         name: string;
                         popularity: number;
                         type: string;
-                        uri: string;
+                        uri: SpotifyURI;
                       }>;
                       available_markets: Array<string>;
                       disc_number: number;
@@ -848,7 +848,7 @@ export type Track = {
                             reason: string;
                           };
                           type: string;
-                          uri: string;
+                          uri: SpotifyURI;
                           album_group: string;
                           artists: Array<Artist>;
                         };
@@ -862,7 +862,7 @@ export type Track = {
                           name: string;
                           popularity: number;
                           type: string;
-                          uri: string;
+                          uri: SpotifyURI;
                         }>;
                         available_markets: Array<string>;
                         disc_number: number;
@@ -893,7 +893,7 @@ export type Track = {
                             release_date_precision: string;
                             restrictions: unknown;
                             type: string;
-                            uri: string;
+                            uri: SpotifyURI;
                             album_group: string;
                             artists: Array<unknown>;
                           };
@@ -942,7 +942,7 @@ export type Track = {
                             preview_url: string;
                             track_number: number;
                             type: string;
-                            uri: string;
+                            uri: SpotifyURI;
                             is_local: boolean;
                           };
                           restrictions: {
@@ -953,7 +953,7 @@ export type Track = {
                           preview_url: string;
                           track_number: number;
                           type: string;
-                          uri: string;
+                          uri: SpotifyURI;
                           is_local: boolean;
                         };
                         restrictions: {
@@ -964,7 +964,7 @@ export type Track = {
                         preview_url: string;
                         track_number: number;
                         type: string;
-                        uri: string;
+                        uri: SpotifyURI;
                         is_local: boolean;
                       };
                       restrictions: {
@@ -975,7 +975,7 @@ export type Track = {
                       preview_url: string;
                       track_number: number;
                       type: string;
-                      uri: string;
+                      uri: SpotifyURI;
                       is_local: boolean;
                     };
                     restrictions: {
@@ -986,7 +986,7 @@ export type Track = {
                     preview_url: string;
                     track_number: number;
                     type: string;
-                    uri: string;
+                    uri: SpotifyURI;
                     is_local: boolean;
                   };
                   restrictions: {
@@ -997,7 +997,7 @@ export type Track = {
                   preview_url: string;
                   track_number: number;
                   type: string;
-                  uri: string;
+                  uri: SpotifyURI;
                   is_local: boolean;
                 };
                 restrictions: {
@@ -1008,7 +1008,7 @@ export type Track = {
                 preview_url: string;
                 track_number: number;
                 type: string;
-                uri: string;
+                uri: SpotifyURI;
                 is_local: boolean;
               };
               restrictions: {
@@ -1019,7 +1019,7 @@ export type Track = {
               preview_url: string;
               track_number: number;
               type: string;
-              uri: string;
+              uri: SpotifyURI;
               is_local: boolean;
             };
             restrictions: {
@@ -1030,7 +1030,7 @@ export type Track = {
             preview_url: string;
             track_number: number;
             type: string;
-            uri: string;
+            uri: SpotifyURI;
             is_local: boolean;
           };
           restrictions: {
@@ -1041,7 +1041,7 @@ export type Track = {
           preview_url: string;
           track_number: number;
           type: string;
-          uri: string;
+          uri: SpotifyURI;
           is_local: boolean;
         };
         restrictions: {
@@ -1052,7 +1052,7 @@ export type Track = {
         preview_url: string;
         track_number: number;
         type: string;
-        uri: string;
+        uri: SpotifyURI;
         is_local: boolean;
       };
       restrictions: {
@@ -1063,7 +1063,7 @@ export type Track = {
       preview_url: string;
       track_number: number;
       type: string;
-      uri: string;
+      uri: SpotifyURI;
       is_local: boolean;
     };
     restrictions: {
@@ -1074,7 +1074,7 @@ export type Track = {
     preview_url: string;
     track_number: number;
     type: string;
-    uri: string;
+    uri: SpotifyURI;
     is_local: boolean;
   };
   restrictions: {
@@ -1085,7 +1085,7 @@ export type Track = {
   preview_url: string;
   track_number: number;
   type: string;
-  uri: string;
+  uri: SpotifyURI;
   is_local: boolean;
 };
 
@@ -1108,7 +1108,7 @@ export type Artist = {
   name: string;
   popularity: number;
   type: string;
-  uri: string;
+  uri: SpotifyURI;
 };
 
 export type Album = {
@@ -1132,7 +1132,7 @@ export type Album = {
     reason: string;
   };
   type: string;
-  uri: string;
+  uri: SpotifyURI;
   artists: Array<{
     external_urls: {
       spotify: string;
@@ -1152,7 +1152,7 @@ export type Album = {
     name: string;
     popularity: number;
     type: string;
-    uri: string;
+    uri: SpotifyURI;
   }>;
   tracks: {
     href: string;
@@ -1191,7 +1191,7 @@ export type PlaybackStatus = {
         id: string;
         name: string;
         type: string;
-        uri: string;
+        uri: SpotifyURI;
       }>;
       available_markets: Array<string>;
       external_urls: {
@@ -1209,7 +1209,7 @@ export type PlaybackStatus = {
       release_date_precision: string;
       total_tracks: number;
       type: string;
-      uri: string;
+      uri: SpotifyURI;
     };
     artists: Array<{
       external_urls: {
@@ -1219,7 +1219,7 @@ export type PlaybackStatus = {
       id: string;
       name: string;
       type: string;
-      uri: string;
+      uri: SpotifyURI;
     }>;
     available_markets: Array<string>;
     disc_number: number;
@@ -1239,7 +1239,7 @@ export type PlaybackStatus = {
     preview_url: string;
     track_number: number;
     type: string;
-    uri: string;
+    uri: SpotifyURI;
   };
   currently_playing_type: string;
   actions: {
@@ -1252,3 +1252,16 @@ export type PlaybackStatus = {
   };
   is_playing: boolean;
 };
+
+type SpotifyCategoryID =
+  | 'album'
+  | 'artist'
+  | 'playlist'
+  | 'track'
+  | 'show'
+  | 'episode';
+
+type SpotifyID = string;
+
+export type SpotifyURI<T extends SpotifyCategoryID = SpotifyCategoryID> =
+  `spotify:${T}:${SpotifyID}`;
