@@ -1,3 +1,4 @@
+import { LoggerService, LogLevel } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import {
   FastifyAdapter,
@@ -6,11 +7,18 @@ import {
 import { env } from 'process';
 import { AppModule } from './app.module';
 
+const getLogger = (): LogLevel[] | LoggerService => {
+  if (process.env.NODE_ENV === 'production') {
+    return ['error', 'warn'];
+  }
+  return console;
+};
+
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter(),
-    { logger: console },
+    { logger: getLogger() },
   );
   if (env.PREFIX) {
     app.setGlobalPrefix(env.PREFIX);
