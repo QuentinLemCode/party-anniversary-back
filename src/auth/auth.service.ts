@@ -13,7 +13,7 @@ export class AuthService {
     if (user?.role === UserRole.ADMIN) {
       return user;
     }
-    if (user?.ip === ip) {
+    if (user?.noIPverification || user?.ip === ip) {
       return user;
     }
     return null;

@@ -22,4 +22,10 @@ export class User {
     default: UserRole.USER,
   })
   role: UserRole;
+
+  @Column({
+    type: 'bool',
+    default: false,
+  })
+  noIPverification: boolean;
 }
