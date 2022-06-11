@@ -17,7 +17,7 @@ import {
   TrackObjectFull,
 } from '../external/spotify-api/types/spotify-interfaces';
 import { UserRole } from '../users/user.entity';
-import { Music, SpotifyOAuthDTO } from './music.interface';
+import { Music, QueueMusic, SpotifyOAuthDTO } from './music.interface';
 @Controller('music')
 export class MusicController {
   constructor(private spotify: SpotifyApiService) {}
@@ -66,7 +66,14 @@ export class MusicController {
     return this.mapTrackItemToMusic(playback.item);
   }
 
+  @Post('queue-music')
+  queueMusic(@Body() queueMusic: QueueMusic) {
+    return this.spotify.addToQueue(queueMusic.uri);
+  }
+
   @Post('register-player')
+  @UseGuards(JwtGuard)
+  @Roles(UserRole.ADMIN)
   async spotifyAuthentication(@Body() spotifyOAuth: SpotifyOAuthDTO) {
     await this.spotify.registerPlayer(spotifyOAuth.code);
     return { authenticated: true };

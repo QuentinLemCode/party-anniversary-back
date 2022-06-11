@@ -14,3 +14,7 @@ export interface Music {
   uri: SpotifyURI<SpotifyTrackCategory>;
   cover: string;
 }
+
+export interface QueueMusic {
+  uri: SpotifyURI<SpotifyTrackCategory>;
+}
