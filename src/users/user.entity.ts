@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
 export enum UserRole {
   ADMIN = 1,
@@ -11,9 +11,11 @@ export class User {
   id: number;
 
   @Column()
+  @Index({ unique: true })
   name: string;
 
-  @Column()
+  @Column({ nullable: true })
+  @Index({ unique: true })
   ip: string;
 
   @Column({
