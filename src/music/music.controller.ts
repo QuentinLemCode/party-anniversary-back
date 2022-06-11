@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Post,
   Query,
   ServiceUnavailableException,
@@ -67,8 +68,9 @@ export class MusicController {
   }
 
   @Post('queue-music')
-  queueMusic(@Body() queueMusic: QueueMusic) {
-    return this.spotify.addToQueue(queueMusic.uri);
+  @HttpCode(204)
+  async queueMusic(@Body() queueMusic: QueueMusic) {
+    await this.spotify.addToQueue(queueMusic.uri);
   }
 
   @Post('register-player')
