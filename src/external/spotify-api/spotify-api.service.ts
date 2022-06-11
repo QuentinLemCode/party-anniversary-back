@@ -1,45 +1,59 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { AxiosResponse } from 'axios';
 import { env } from 'process';
 import {
   catchError,
   EMPTY,
   first,
+  firstValueFrom,
   map,
   mergeMap,
   Observable,
   of,
   tap,
 } from 'rxjs';
-import { SearchResults } from './spotify-interfaces';
-import { Token, TokenWithCalculatedExpiration } from './token';
+import { querystring } from '../../utils/querystring';
+import { PlaybackStatus, SearchResults } from './spotify-interfaces';
+import {
+  RegisteredPlayer,
+  Token,
+  TokenPlayer,
+  TokenWithCalculatedExpiration,
+} from './token';
 
 @Injectable()
 export class SpotifyApiService implements OnModuleInit {
   constructor(private http: HttpService) {}
   private currentToken: TokenWithCalculatedExpiration;
+  private currentRegisteredPlayer: RegisteredPlayer;
 
   onModuleInit() {
     this.loadToken().subscribe();
   }
 
-  search(query: string): Observable<AxiosResponse<SearchResults>> {
-    return this.key.pipe(
-      first(),
-      mergeMap((key) => {
-        return this.http.get('https://api.spotify.com/v1/search', {
-          params: {
-            q: query,
-            type: 'track,artist',
-            limit: 20,
-            market: 'FR',
-          },
-          headers: {
-            Authorization: 'Bearer ' + key,
-          },
-        });
-      }),
+  search(query: string): Promise<AxiosResponse<SearchResults>> {
+    return firstValueFrom(
+      this.key.pipe(
+        first(),
+        mergeMap((key) => {
+          return this.http.get('https://api.spotify.com/v1/search', {
+            params: {
+              q: query,
+              type: 'track,artist',
+              limit: 20,
+              market: 'FR',
+            },
+            headers: {
+              Authorization: 'Bearer ' + key,
+            },
+          });
+        }),
+      ),
     );
   }
 
@@ -59,6 +73,52 @@ export class SpotifyApiService implements OnModuleInit {
     );
   }
 
+  async registerPlayer(code: string) {
+    const form = {
+      code: code,
+      redirect_uri: this.redirectUrl,
+      grant_type: 'authorization_code',
+    };
+
+    const response = await firstValueFrom(
+      this.http.post<TokenPlayer>(
+        'https://accounts.spotify.com/api/token',
+        querystring(form),
+        {
+          headers: {
+            Authorization:
+              'Basic ' +
+              Buffer.from(
+                env.SPOTIFY_CLIENT_ID + ':' + env.SPOTIFY_CLIENT_KEY,
+              ).toString('base64'),
+          },
+        },
+      ),
+    );
+
+    this.currentRegisteredPlayer = {
+      ...response.data,
+      expires_at: Date.now() + response.data.expires_in - 10,
+    };
+
+    // TODO : prepare tasks for renewing token
+  }
+
+  async getPlaybackState(): Promise<AxiosResponse<PlaybackStatus>> {
+    return firstValueFrom(
+      this.http.get('https://api.spotify.com/v1/me/player', {
+        headers: this.getAuthorizationHeaderForCurrentPlayer(),
+      }),
+    );
+  }
+
+  get redirectUrl() {
+    if (!process.env.REDIRECT_HOST) {
+      throw new ServiceUnavailableException('Redirect host not set on server');
+    }
+    return process.env.REDIRECT_HOST + '/admin/spotify-auth';
+  }
+
   private loadToken(): Observable<Token> {
     return this.getToken().pipe(
       map((response) => response.data),
@@ -68,6 +128,12 @@ export class SpotifyApiService implements OnModuleInit {
         return EMPTY;
       }),
     );
+  }
+
+  private getAuthorizationHeaderForCurrentPlayer() {
+    return {
+      Authorization: `${this.currentRegisteredPlayer.token_type} ${this.currentRegisteredPlayer.access_token}`,
+    };
   }
 
   private saveToken(token: Token) {

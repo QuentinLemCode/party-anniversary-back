@@ -2,6 +2,7 @@ declare namespace NodeJS {
   export interface ProcessEnv {
     SPOTIFY_CLIENT_ID?: string;
     SPOTIFY_CLIENT_KEY?: string;
+    REDIRECT_HOST?: string;
     ORIGIN?: string;
     PORT?: string;
     PREFIX?: string;

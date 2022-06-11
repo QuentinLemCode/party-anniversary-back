@@ -10,6 +10,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter(),
+    { logger: console },
   );
   if (env.PREFIX) {
     app.setGlobalPrefix(env.PREFIX);
