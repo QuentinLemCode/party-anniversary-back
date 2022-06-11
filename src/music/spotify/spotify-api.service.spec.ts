@@ -1,5 +1,7 @@
 import { HttpModule } from '@nestjs/axios';
 import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { SpotifyAccount } from './spotify-account.entity';
 import { SpotifyApiService } from './spotify-api.service';
 
 describe('SpotifyApiService', () => {
@@ -7,7 +9,15 @@ describe('SpotifyApiService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [SpotifyApiService],
+      providers: [
+        SpotifyApiService,
+        {
+          provide: getRepositoryToken(SpotifyAccount),
+          useValue: {
+            findOne: () => null,
+          },
+        },
+      ],
       imports: [HttpModule],
     }).compile();
 
