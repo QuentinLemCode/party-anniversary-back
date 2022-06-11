@@ -10,7 +10,10 @@ export class AuthService {
 
   async validateUser(name: string, ip: string) {
     const user = await this.users.find(name);
-    if (user && user.ip === ip) {
+    if (user?.role === UserRole.ADMIN) {
+      return user;
+    }
+    if (user?.ip === ip) {
       return user;
     }
     return null;
