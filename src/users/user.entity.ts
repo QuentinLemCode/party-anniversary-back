@@ -1,4 +1,11 @@
-import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  Index,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 export enum UserRole {
   ADMIN = 1,
@@ -7,6 +14,17 @@ export enum UserRole {
 
 @Entity()
 export class User {
+  @BeforeUpdate()
+  updateDates() {
+    this.updated_at = new Date();
+  }
+
+  @BeforeInsert()
+  insertDates() {
+    this.updated_at = new Date();
+    this.created_at = new Date();
+  }
+
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -30,4 +48,20 @@ export class User {
     default: false,
   })
   noIPverification: boolean;
+
+  @Column({ type: 'datetime' })
+  public created_at: Date;
+
+  @Column({ type: 'datetime' })
+  public updated_at: Date;
+
+  @Column({
+    nullable: true,
+  })
+  password: string;
+
+  @Column({
+    nullable: true,
+  })
+  salt: string;
 }

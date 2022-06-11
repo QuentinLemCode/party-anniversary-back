@@ -2,15 +2,20 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { User, UserRole } from '../users/user.entity';
+import { hashPassword } from '../utils/hash';
 import { UserLogin } from './auth.interface';
 
 @Injectable()
 export class AuthService {
   constructor(private users: UsersService, private jwt: JwtService) {}
 
-  async validateUser(name: string, ip: string) {
+  async validateUser(name: string, ip: string, password?: string) {
     const user = await this.users.find(name);
-    if (user?.role === UserRole.ADMIN) {
+    if (
+      user?.role === UserRole.ADMIN &&
+      password &&
+      hashPassword(password, user?.salt) === user?.password
+    ) {
       return user;
     }
     if (user?.noIPverification || user?.ip === ip) {
