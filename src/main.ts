@@ -6,6 +6,7 @@ import {
 } from '@nestjs/platform-fastify';
 import { env } from 'process';
 import { AppModule } from './app.module';
+import * as requestIp from 'request-ip';
 
 const getLogger = (): LogLevel[] | LoggerService => {
   if (process.env.NODE_ENV === 'production') {
@@ -20,6 +21,7 @@ async function bootstrap() {
     new FastifyAdapter(),
     { logger: getLogger() },
   );
+  app.use(requestIp.mw());
   if (env.PREFIX) {
     app.setGlobalPrefix(env.PREFIX);
   }
