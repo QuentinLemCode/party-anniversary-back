@@ -12,10 +12,12 @@ import { randomUUID } from 'crypto';
 import { JwtGuard } from 'src/auth/jwt.guard';
 import { Roles } from '../auth/roles.decorator';
 import { SpotifyApiService } from '../external/spotify-api/spotify-api.service';
-import { SearchResults } from '../external/spotify-api/spotify-interfaces';
-import { Music } from '../interfaces/music';
+import {
+  SearchResponse,
+  TrackObjectFull,
+} from '../external/spotify-api/types/spotify-interfaces';
 import { UserRole } from '../users/user.entity';
-import { SpotifyOAuthDTO } from './music.interface';
+import { Music, SpotifyOAuthDTO } from './music.interface';
 @Controller('music')
 export class MusicController {
   constructor(private spotify: SpotifyApiService) {}
@@ -58,7 +60,10 @@ export class MusicController {
 
   @Get('current-play')
   async currentPlay() {
-    return (await this.spotify.getPlaybackState()).data;
+    const response = await this.spotify.getPlaybackState();
+    const playback = response.data;
+    if (playback.item?.type !== 'track') return;
+    return this.mapTrackItemToMusic(playback.item);
   }
 
   @Post('register-player')
@@ -67,15 +72,20 @@ export class MusicController {
     return { authenticated: true };
   }
 
-  private mapResults(results: SearchResults): Music[] {
-    return results.tracks.items.map((track) => {
-      return {
-        album: track.album.name,
-        artist: track.artists.map((artist) => artist.name).join(', '),
-        cover: track.album.images[0].url,
-        uri: track.uri,
-        title: track.name,
-      };
-    });
+  private mapResults(results: SearchResponse): Music[] {
+    return (
+      results?.tracks?.items?.map((track) => this.mapTrackItemToMusic(track)) ||
+      []
+    );
+  }
+
+  private mapTrackItemToMusic(track: TrackObjectFull): Music {
+    return {
+      album: track.album.name,
+      artist: track.artists.map((artist) => artist.name).join(', '),
+      cover: track.album.images[0].url,
+      uri: track.uri,
+      title: track.name,
+    };
   }
 }

@@ -19,16 +19,17 @@ import {
 } from 'rxjs';
 import { querystring } from '../../utils/querystring';
 import {
-  PlaybackStatus,
-  SearchResults,
-  SpotifyURI,
-} from './spotify-interfaces';
-import {
   RegisteredPlayer,
   Token,
   TokenPlayer,
   TokenWithCalculatedExpiration,
 } from './token';
+import {
+  CurrentPlaybackResponse,
+  SearchResponse,
+  SpotifyTrackCategory,
+  SpotifyURI,
+} from './types/spotify-interfaces';
 
 @Injectable()
 export class SpotifyApiService implements OnModuleInit {
@@ -44,7 +45,7 @@ export class SpotifyApiService implements OnModuleInit {
     this.loadToken().subscribe();
   }
 
-  search(query: string): Promise<AxiosResponse<SearchResults>> {
+  search(query: string): Promise<AxiosResponse<SearchResponse>> {
     return firstValueFrom(
       this.key.pipe(
         first(),
@@ -112,7 +113,7 @@ export class SpotifyApiService implements OnModuleInit {
     // TODO : prepare tasks for renewing token
   }
 
-  async getPlaybackState(): Promise<AxiosResponse<PlaybackStatus>> {
+  async getPlaybackState(): Promise<AxiosResponse<CurrentPlaybackResponse>> {
     return firstValueFrom(
       this.http.get('https://api.spotify.com/v1/me/player', {
         headers: {
@@ -135,7 +136,7 @@ export class SpotifyApiService implements OnModuleInit {
     );
   }
 
-  async addToQueue(uri: SpotifyURI<'track'>) {
+  async addToQueue(uri: SpotifyURI<SpotifyTrackCategory>) {
     return firstValueFrom(
       this.http.post(
         'https://api.spotify.com/v1/me/player/queue',
