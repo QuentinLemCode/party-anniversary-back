@@ -15,6 +15,7 @@ RUN npm run build \
 FROM arm32v6/node:16-alpine3.14
 
 ENV NODE_ENV production
+ENV TZ="Europe/Paris"
 
 USER node
 WORKDIR /home/node
