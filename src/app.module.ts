@@ -4,8 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { env } from 'process';
 import { AuthModule } from './auth/auth.module';
-import { SpotifyApiService } from './external/spotify-api/spotify-api.service';
-import { MusicController } from './music/music.controller';
+import { MusicModule } from './music/music.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -24,8 +23,8 @@ import { UsersModule } from './users/users.module';
     }),
     AuthModule,
     UsersModule,
+    MusicModule,
   ],
-  controllers: [MusicController],
-  providers: [SpotifyApiService],
+  controllers: [],
 })
 export class AppModule {}

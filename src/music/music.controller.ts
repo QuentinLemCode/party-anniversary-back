@@ -12,13 +12,13 @@ import {
 import { randomUUID } from 'crypto';
 import { JwtGuard } from 'src/auth/jwt.guard';
 import { Roles } from '../auth/roles.decorator';
-import { SpotifyApiService } from '../external/spotify-api/spotify-api.service';
+import { UserRole } from '../users/user.entity';
+import { Music, QueueMusic, SpotifyOAuthDTO } from './music.interface';
+import { SpotifyApiService } from './spotify/spotify-api.service';
 import {
   SearchResponse,
   TrackObjectFull,
-} from '../external/spotify-api/types/spotify-interfaces';
-import { UserRole } from '../users/user.entity';
-import { Music, QueueMusic, SpotifyOAuthDTO } from './music.interface';
+} from './spotify/types/spotify-interfaces';
 @Controller('music')
 export class MusicController {
   constructor(private spotify: SpotifyApiService) {}

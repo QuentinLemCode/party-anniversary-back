@@ -1,7 +1,7 @@
 import {
   SpotifyTrackCategory,
   SpotifyURI,
-} from '../external/spotify-api/types/spotify-interfaces';
+} from './spotify/types/spotify-interfaces';
 
 export interface SpotifyOAuthDTO {
   code: string;
