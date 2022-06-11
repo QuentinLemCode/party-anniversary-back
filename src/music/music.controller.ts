@@ -59,6 +59,11 @@ export class MusicController {
     return url.toString();
   }
 
+  @Get('player')
+  player() {
+    return this.spotify.isAccountRegistered();
+  }
+
   @Get('current-play')
   async currentPlay() {
     const response = await this.spotify.getPlaybackState();

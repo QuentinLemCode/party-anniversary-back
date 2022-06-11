@@ -4,6 +4,7 @@ import {
   OnModuleInit,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { AxiosResponse } from 'axios';
 import { env } from 'process';
 import {
@@ -17,13 +18,10 @@ import {
   of,
   tap,
 } from 'rxjs';
+import { Repository } from 'typeorm';
 import { querystring } from '../../utils/querystring';
-import {
-  RegisteredPlayer,
-  Token,
-  TokenPlayer,
-  TokenWithCalculatedExpiration,
-} from './token';
+import { SpotifyAccount } from './spotify-account.entity';
+import { Token, TokenPlayer, TokenWithCalculatedExpiration } from './token';
 import {
   CurrentPlaybackResponse,
   SearchResponse,
@@ -33,16 +31,21 @@ import {
 
 @Injectable()
 export class SpotifyApiService implements OnModuleInit {
-  constructor(private http: HttpService) {}
+  constructor(
+    private http: HttpService,
+    @InjectRepository(SpotifyAccount)
+    private spotifyAccount: Repository<SpotifyAccount>,
+  ) {}
   private currentToken: TokenWithCalculatedExpiration;
-  private currentRegisteredPlayer: RegisteredPlayer;
+  private currentRegisteredAccount: SpotifyAccount;
 
   private readonly formUrlContentTypeHeader = {
     'Content-Type': 'application/x-www-form-urlencoded',
   };
 
-  onModuleInit() {
+  async onModuleInit() {
     this.loadToken().subscribe();
+    this.currentRegisteredAccount = await this.getAccount();
   }
 
   search(query: string): Promise<AxiosResponse<SearchResponse>> {
@@ -82,6 +85,13 @@ export class SpotifyApiService implements OnModuleInit {
     );
   }
 
+  isAccountRegistered(): boolean {
+    return (
+      this.currentRegisteredAccount.expires_at !== null &&
+      this.currentRegisteredAccount.expires_at <= Date.now()
+    );
+  }
+
   async registerPlayer(code: string) {
     const form = {
       code: code,
@@ -105,10 +115,13 @@ export class SpotifyApiService implements OnModuleInit {
       ),
     );
 
-    this.currentRegisteredPlayer = {
+    const account = {
+      ...(await this.getAccount()),
       ...response.data,
       expires_at: Date.now() + response.data.expires_in - 10,
     };
+    this.spotifyAccount.save(account);
+    this.currentRegisteredAccount = account;
 
     // TODO : prepare tasks for renewing token
   }
@@ -158,6 +171,15 @@ export class SpotifyApiService implements OnModuleInit {
     return process.env.REDIRECT_HOST + '/admin/spotify-auth';
   }
 
+  private async getAccount(): Promise<SpotifyAccount> {
+    let account = await this.spotifyAccount.findOneBy({ id: 1 });
+    if (!account) {
+      account = this.spotifyAccount.create({ id: 1 });
+      this.spotifyAccount.save(account);
+    }
+    return account;
+  }
+
   private loadToken(): Observable<Token> {
     return this.getToken().pipe(
       map((response) => response.data),
@@ -171,7 +193,7 @@ export class SpotifyApiService implements OnModuleInit {
 
   private getAuthorizationHeaderForCurrentPlayer() {
     return {
-      Authorization: `${this.currentRegisteredPlayer.token_type} ${this.currentRegisteredPlayer.access_token}`,
+      Authorization: `${this.currentRegisteredAccount.token_type} ${this.currentRegisteredAccount.access_token}`,
     };
   }
 
