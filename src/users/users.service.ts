@@ -17,6 +17,7 @@ export class UsersService {
     return this.users.findOneBy({ id });
   }
 
+  // TODO return a token when registered
   register(registerDTO: RegisterUserDTO, ip: string) {
     const user = this.users.create();
     user.name = registerDTO.name;
