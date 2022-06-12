@@ -15,9 +15,7 @@ RUN npm run build \
 FROM arm32v6/node:16-alpine3.14
 
 ENV NODE_ENV production
-RUN apk add -U tzdata
 ENV TZ=Europe/Paris
-RUN cp /usr/share/zoneinfo/Europe/Paris /etc/localtime
 
 USER node
 WORKDIR /home/node
