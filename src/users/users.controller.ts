@@ -17,7 +17,7 @@ export class UsersController {
   @Post('register')
   @HttpCode(204)
   register(@Body() registerUserDTO: RegisterUserDTO, @Req() request: Request) {
-    const ip = request.clientIp;
+    const ip = request.clientIp || request.ip;
     if (!ip) {
       throw new BadRequestException('Unable to retrieve IP adress');
     }

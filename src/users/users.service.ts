@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { hashPassword } from '../utils/hash';
 import { User } from './user.entity';
 import { RegisterUserDTO } from './users.interface';
 
@@ -20,6 +21,7 @@ export class UsersService {
     const user = this.users.create();
     user.name = registerDTO.name;
     user.ip = ip;
+    user.challenge = hashPassword(registerDTO.challenge, user.salt);
     return this.users.save(user);
   }
 }

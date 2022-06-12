@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto';
 import {
   BeforeInsert,
   BeforeUpdate,
@@ -63,5 +64,10 @@ export class User {
   @Column({
     nullable: true,
   })
-  salt: string;
+  salt: string = randomBytes(16).toString('base64');
+
+  @Column({
+    nullable: true,
+  })
+  challenge: string;
 }
