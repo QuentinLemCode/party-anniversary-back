@@ -8,8 +8,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { Strategy } from 'passport-local';
 import { AuthService } from './auth.service';
-import { RealIP } from 'nestjs-real-ip';
-
+import { getClientIp } from '@supercharge/request-ip';
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
   private readonly logger = new Logger(LocalStrategy.name);
@@ -22,14 +21,14 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(
-    request: Request,
-    name: string,
-    challenge: string,
-    @RealIP() ip: string,
-  ) {
+  async validate(request: Request, name: string, challenge: string) {
+    const ip = getClientIp(request);
     this.logger.log(ip);
-    this.logger.log(request.ips);
+    this.logger.log(
+      Object.entries(request.headers)
+        .map((head) => head.join('-'))
+        .join(' / '),
+    );
     if (!ip) {
       throw new BadRequestException('No adress ip received');
     }
