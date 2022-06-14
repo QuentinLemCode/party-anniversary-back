@@ -5,10 +5,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
+import { getClientIp } from '@supercharge/request-ip';
 import { Request } from 'express';
 import { Strategy } from 'passport-local';
 import { AuthService } from './auth.service';
-import { getClientIp } from '@supercharge/request-ip';
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
   private readonly logger = new Logger(LocalStrategy.name);
@@ -21,18 +21,14 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(request: Request, name: string, challenge: string) {
+  async validate(request: Request, name: string) {
     const ip = getClientIp(request);
-    this.logger.log(ip);
-    this.logger.log(
-      Object.entries(request.headers)
-        .map((head) => head.join('-'))
-        .join(' / '),
-    );
+    this.logger.log(`User ${name} trying to connect with ip ${ip}`);
     if (!ip) {
       throw new BadRequestException('No adress ip received');
     }
     const password = request.body.password;
+    const challenge = request.body.challenge;
     const user = await this.auth.validateUser(name, ip, password, challenge);
     if (!user) {
       throw new NotFoundException();

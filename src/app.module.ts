@@ -1,9 +1,11 @@
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { env } from 'process';
 import { AuthModule } from './auth/auth.module';
+import { AuthService } from './auth/auth.service';
 import { MusicModule } from './music/music.module';
 import { UsersModule } from './users/users.module';
 
@@ -26,5 +28,6 @@ import { UsersModule } from './users/users.module';
     MusicModule,
   ],
   controllers: [],
+  providers: [AuthService, JwtService],
 })
 export class AppModule {}
