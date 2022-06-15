@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Any, Raw, Repository } from 'typeorm';
+import { Raw, Repository } from 'typeorm';
 import { Music } from '../music.entity';
 import { Queue, Status } from './queue.entity';
 
