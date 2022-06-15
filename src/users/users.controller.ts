@@ -2,12 +2,11 @@ import {
   BadRequestException,
   Body,
   Controller,
-  HttpCode,
   Post,
   Req,
 } from '@nestjs/common';
-import type { Request } from 'express';
 import { getClientIp } from '@supercharge/request-ip';
+import type { Request } from 'express';
 import { AuthService } from '../auth/auth.service';
 import { RegisterUserDTO } from './users.interface';
 import { UsersService } from './users.service';
@@ -17,7 +16,6 @@ export class UsersController {
   constructor(private users: UsersService, private auth: AuthService) {}
 
   @Post('register')
-  @HttpCode(204)
   async register(
     @Body() registerUserDTO: RegisterUserDTO,
     @Req() request: Request,

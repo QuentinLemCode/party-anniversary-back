@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { hashPassword } from '../utils/hash';
@@ -7,7 +7,9 @@ import { RegisterUserDTO } from './users.interface';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectRepository(User) private users: Repository<User>) {}
+  constructor(
+    @InjectRepository(User) private readonly users: Repository<User>,
+  ) {}
 
   find(name: string) {
     return this.users.findOne({ where: { name } });
@@ -17,7 +19,10 @@ export class UsersService {
     return this.users.findOneBy({ id });
   }
 
-  async register(registerDTO: RegisterUserDTO, ip: string) {
+  register(registerDTO: RegisterUserDTO, ip: string) {
+    if (!registerDTO.challenge) {
+      throw new BadRequestException('Missing challenge');
+    }
     const user = this.users.create();
     user.name = registerDTO.name;
     user.ip = ip;
