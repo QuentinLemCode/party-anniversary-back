@@ -27,9 +27,9 @@ export class Queue {
     enum: Status,
     default: Status.PENDING,
   })
-  status: Status;
+  status: Status = Status.PENDING;
 
-  @ManyToOne(() => Music, (music) => music.queue)
+  @ManyToOne(() => Music, (music) => music.queue, { cascade: true })
   music: Music;
 
   @BeforeUpdate()
