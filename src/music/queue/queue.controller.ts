@@ -8,11 +8,11 @@ export class QueueController {
 
   @Get()
   getQueue() {
-    return this.queue.getQueue();
+    return this.queue.get();
   }
 
   @Post()
-  addToQueue(@Body() music: Music) {
-    return this.queue.addToQueue(music);
+  pushToQueue(@Body() music: Music) {
+    return this.queue.push(music);
   }
 }

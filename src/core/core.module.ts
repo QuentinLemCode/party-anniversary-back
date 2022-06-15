@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { env } from 'process';
 import { jwtConstants } from './core.constant';
+import DatabaseLogger from './database.logger';
 
 @Global()
 @Module({
@@ -24,6 +25,7 @@ import { jwtConstants } from './core.constant';
       database: env.DATABASE_NAME || 'party-anniversary',
       autoLoadEntities: true,
       synchronize: true,
+      logger: new DatabaseLogger(),
     }),
   ],
   exports: [JwtModule, HttpModule, ConfigModule, TypeOrmModule],
