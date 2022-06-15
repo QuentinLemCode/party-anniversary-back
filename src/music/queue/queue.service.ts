@@ -19,6 +19,7 @@ export class QueueService {
       order: {
         updated_at: 'ASC',
       },
+      relations: ['music'],
     });
   }
 }

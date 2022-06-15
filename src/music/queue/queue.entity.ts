@@ -61,7 +61,7 @@ export class Queue {
   @DeleteDateColumn({
     precision: null,
     type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP',
+    default: () => null,
   })
   deleted_at: Date;
 
