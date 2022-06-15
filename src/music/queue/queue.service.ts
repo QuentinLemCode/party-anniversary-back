@@ -31,7 +31,7 @@ export class QueueService {
   private getPendingQueue(take = 50) {
     return this.queue.find({
       order: {
-        updated_at: 'ASC',
+        updated_at: 'DESC',
       },
       take,
       where: { status: Raw("'0'") },
