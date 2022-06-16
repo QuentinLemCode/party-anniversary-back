@@ -1,4 +1,5 @@
 import { HttpModule } from '@nestjs/axios';
+import { ScheduleModule } from '@nestjs/schedule';
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -27,7 +28,8 @@ import DatabaseLogger from './database.logger';
       synchronize: true,
       logger: new DatabaseLogger(),
     }),
+    ScheduleModule.forRoot(),
   ],
-  exports: [JwtModule, HttpModule, ConfigModule, TypeOrmModule],
+  exports: [JwtModule, HttpModule, ConfigModule, TypeOrmModule, ScheduleModule],
 })
 export class CoreModule {}
