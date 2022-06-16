@@ -110,6 +110,7 @@ export class SpotifyApiService implements OnModuleInit {
               Buffer.from(
                 env.SPOTIFY_CLIENT_ID + ':' + env.SPOTIFY_CLIENT_KEY,
               ).toString('base64'),
+            ...this.formUrlContentTypeHeader,
           },
         },
       ),
@@ -130,7 +131,6 @@ export class SpotifyApiService implements OnModuleInit {
     return firstValueFrom(
       this.http.get('https://api.spotify.com/v1/me/player', {
         headers: {
-          ...this.formUrlContentTypeHeader,
           ...this.getAuthorizationHeaderForCurrentPlayer(),
         },
       }),
@@ -168,7 +168,7 @@ export class SpotifyApiService implements OnModuleInit {
     if (!process.env.REDIRECT_HOST) {
       throw new ServiceUnavailableException('Redirect host not set on server');
     }
-    return process.env.REDIRECT_HOST + '/admin/spotify-auth';
+    return process.env.REDIRECT_HOST + '/admin/spotify-device';
   }
 
   private async getAccount(): Promise<SpotifyAccount> {
