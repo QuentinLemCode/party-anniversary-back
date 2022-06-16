@@ -88,7 +88,7 @@ export class SpotifyApiService implements OnModuleInit {
   isAccountRegistered(): boolean {
     return (
       this.currentRegisteredAccount.expires_at !== null &&
-      this.currentRegisteredAccount.expires_at <= Date.now()
+      this.currentRegisteredAccount.expires_at >= Date.now()
     );
   }
 
@@ -119,9 +119,9 @@ export class SpotifyApiService implements OnModuleInit {
     const account = {
       ...(await this.getAccount()),
       ...response.data,
-      expires_at: Date.now() + response.data.expires_in - 10,
+      expires_at: Date.now() + (response.data.expires_in - 10) * 1000,
     };
-    this.spotifyAccount.save(account);
+    await this.spotifyAccount.save(account);
     this.currentRegisteredAccount = account;
 
     // TODO : prepare tasks for renewing token

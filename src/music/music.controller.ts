@@ -25,6 +25,7 @@ import {
   SearchResponse,
   TrackObjectFull,
 } from './spotify/types/spotify-interfaces';
+import { AxiosError } from 'axios';
 @Controller('music')
 export class MusicController {
   constructor(
@@ -93,8 +94,18 @@ export class MusicController {
   @UseGuards(JwtGuard)
   @Roles(UserRole.ADMIN)
   async spotifyAuthentication(@Body() spotifyOAuth: SpotifyOAuthDTO) {
-    await this.spotify.registerPlayer(spotifyOAuth.code);
-    return { authenticated: true };
+    try {
+      await this.spotify.registerPlayer(spotifyOAuth.code);
+    } catch (error) {
+      if (error instanceof AxiosError && error.response?.status === 400) {
+        throw new BadRequestException({
+          spotifyMessage: error.response.data.error,
+          isSpotifyAccountRegistered: this.spotify.isAccountRegistered(),
+          message: 'Authentification Spotify invalide ou déjà utilisé',
+        });
+      }
+    }
+    return this.currentState();
   }
 
   private mapResults(results: SearchResponse): Music[] {
