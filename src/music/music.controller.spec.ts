@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { EMPTY } from 'rxjs';
 import { JwtGuard } from 'src/auth/jwt.guard';
 import { MusicController } from './music.controller';
+import { QueueService } from './queue/queue.service';
 import { SpotifyApiService } from './spotify/spotify-api.service';
 
 describe('MusicController', () => {
@@ -19,6 +20,10 @@ describe('MusicController', () => {
         },
         {
           provide: JwtGuard,
+          useValue: {},
+        },
+        {
+          provide: QueueService,
           useValue: {},
         },
       ],
