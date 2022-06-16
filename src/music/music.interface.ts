@@ -1,3 +1,4 @@
+import { Queue } from './queue/queue.entity';
 import {
   SpotifyTrackCategory,
   SpotifyURI,
@@ -17,4 +18,10 @@ export interface Music {
 
 export interface QueueMusic {
   uri: SpotifyURI<SpotifyTrackCategory>;
+}
+
+export interface CurrentMusic {
+  isSpotifyAccountRegistered: boolean;
+  currentPlay?: Music | null;
+  queue?: Queue[];
 }

@@ -88,7 +88,7 @@ export class SpotifyApiService implements OnModuleInit {
   isAccountRegistered(): boolean {
     return (
       this.currentRegisteredAccount.expires_at !== null &&
-      this.currentRegisteredAccount.expires_at <= Date.now()
+      this.currentRegisteredAccount.expires_at >= Date.now()
     );
   }
 
@@ -110,6 +110,7 @@ export class SpotifyApiService implements OnModuleInit {
               Buffer.from(
                 env.SPOTIFY_CLIENT_ID + ':' + env.SPOTIFY_CLIENT_KEY,
               ).toString('base64'),
+            ...this.formUrlContentTypeHeader,
           },
         },
       ),
@@ -118,9 +119,9 @@ export class SpotifyApiService implements OnModuleInit {
     const account = {
       ...(await this.getAccount()),
       ...response.data,
-      expires_at: Date.now() + response.data.expires_in - 10,
+      expires_at: Date.now() + (response.data.expires_in - 10) * 1000,
     };
-    this.spotifyAccount.save(account);
+    await this.spotifyAccount.save(account);
     this.currentRegisteredAccount = account;
 
     // TODO : prepare tasks for renewing token
@@ -130,7 +131,6 @@ export class SpotifyApiService implements OnModuleInit {
     return firstValueFrom(
       this.http.get('https://api.spotify.com/v1/me/player', {
         headers: {
-          ...this.formUrlContentTypeHeader,
           ...this.getAuthorizationHeaderForCurrentPlayer(),
         },
       }),
@@ -168,7 +168,7 @@ export class SpotifyApiService implements OnModuleInit {
     if (!process.env.REDIRECT_HOST) {
       throw new ServiceUnavailableException('Redirect host not set on server');
     }
-    return process.env.REDIRECT_HOST + '/admin/spotify-auth';
+    return process.env.REDIRECT_HOST + '/admin/spotify-device';
   }
 
   private async getAccount(): Promise<SpotifyAccount> {

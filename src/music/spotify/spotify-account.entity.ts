@@ -20,6 +20,6 @@ export class SpotifyAccount {
   @Column({ nullable: true })
   refresh_token: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'bigint', nullable: true })
   expires_at: number;
 }

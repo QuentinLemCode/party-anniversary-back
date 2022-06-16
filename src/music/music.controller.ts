@@ -13,15 +13,25 @@ import { randomUUID } from 'crypto';
 import { JwtGuard } from 'src/auth/jwt.guard';
 import { Roles } from '../auth/roles.decorator';
 import { UserRole } from '../users/user.entity';
-import { Music, QueueMusic, SpotifyOAuthDTO } from './music.interface';
+import {
+  CurrentMusic,
+  Music,
+  QueueMusic,
+  SpotifyOAuthDTO,
+} from './music.interface';
+import { QueueService } from './queue/queue.service';
 import { SpotifyApiService } from './spotify/spotify-api.service';
 import {
   SearchResponse,
   TrackObjectFull,
 } from './spotify/types/spotify-interfaces';
+import { AxiosError } from 'axios';
 @Controller('music')
 export class MusicController {
-  constructor(private spotify: SpotifyApiService) {}
+  constructor(
+    private readonly spotify: SpotifyApiService,
+    private readonly queue: QueueService,
+  ) {}
 
   @UseGuards(JwtGuard)
   @Get('search')
@@ -59,17 +69,19 @@ export class MusicController {
     return url.toString();
   }
 
-  @Get('player')
-  player() {
-    return this.spotify.isAccountRegistered();
-  }
-
-  @Get('current-play')
-  async currentPlay() {
-    const response = await this.spotify.getPlaybackState();
-    const playback = response.data;
-    if (playback.item?.type !== 'track') return;
-    return this.mapTrackItemToMusic(playback.item);
+  @Get()
+  async currentState(): Promise<CurrentMusic> {
+    const isSpotifyAccountRegistered = this.spotify.isAccountRegistered();
+    if (!isSpotifyAccountRegistered) {
+      return { isSpotifyAccountRegistered };
+    }
+    const queue = await this.queue.get();
+    const currentPlay = (await this.currentPlay()) || null;
+    return {
+      isSpotifyAccountRegistered,
+      queue,
+      currentPlay,
+    };
   }
 
   @Post('queue-music')
@@ -82,8 +94,18 @@ export class MusicController {
   @UseGuards(JwtGuard)
   @Roles(UserRole.ADMIN)
   async spotifyAuthentication(@Body() spotifyOAuth: SpotifyOAuthDTO) {
-    await this.spotify.registerPlayer(spotifyOAuth.code);
-    return { authenticated: true };
+    try {
+      await this.spotify.registerPlayer(spotifyOAuth.code);
+    } catch (error) {
+      if (error instanceof AxiosError && error.response?.status === 400) {
+        throw new BadRequestException({
+          spotifyMessage: error.response.data.error,
+          isSpotifyAccountRegistered: this.spotify.isAccountRegistered(),
+          message: 'Authentification Spotify invalide ou déjà utilisé',
+        });
+      }
+    }
+    return this.currentState();
   }
 
   private mapResults(results: SearchResponse): Music[] {
@@ -101,5 +123,12 @@ export class MusicController {
       uri: track.uri,
       title: track.name,
     };
+  }
+
+  private async currentPlay() {
+    const response = await this.spotify.getPlaybackState();
+    const playback = response.data;
+    if (playback.item?.type !== 'track') return;
+    return this.mapTrackItemToMusic(playback.item);
   }
 }
