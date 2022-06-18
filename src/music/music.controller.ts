@@ -122,6 +122,7 @@ export class MusicController {
       cover: track.album.images[0].url,
       uri: track.uri,
       title: track.name,
+      duration: track.duration_ms,
     };
   }
 

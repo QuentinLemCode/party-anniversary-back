@@ -19,6 +19,9 @@ export class Music implements MusicInterface {
   @Column()
   cover: string;
 
+  @Column()
+  duration: number;
+
   @OneToMany(() => Queue, (queue) => queue.music)
   queue: Queue[];
 }

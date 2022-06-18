@@ -14,6 +14,7 @@ export interface Music {
   album: string;
   uri: SpotifyURI<SpotifyTrackCategory>;
   cover: string;
+  duration: number;
 }
 
 export interface QueueMusic {
