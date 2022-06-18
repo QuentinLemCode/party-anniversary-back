@@ -84,12 +84,6 @@ export class MusicController {
     };
   }
 
-  @Post('queue-music')
-  @HttpCode(204)
-  async queueMusic(@Body() queueMusic: QueueMusic) {
-    await this.spotify.addToQueue(queueMusic.uri);
-  }
-
   @Post('register-player')
   @UseGuards(JwtGuard)
   @Roles(UserRole.ADMIN)
