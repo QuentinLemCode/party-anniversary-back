@@ -3,29 +3,23 @@ import {
   Body,
   Controller,
   Get,
-  HttpCode,
   Post,
   Query,
   ServiceUnavailableException,
   UseGuards,
 } from '@nestjs/common';
+import { AxiosError } from 'axios';
 import { randomUUID } from 'crypto';
 import { JwtGuard } from 'src/auth/jwt.guard';
 import { Roles } from '../auth/roles.decorator';
 import { UserRole } from '../users/user.entity';
-import {
-  CurrentMusic,
-  Music,
-  QueueMusic,
-  SpotifyOAuthDTO,
-} from './music.interface';
+import { CurrentMusic, Music, SpotifyOAuthDTO } from './music.interface';
 import { QueueService } from './queue/queue.service';
 import { SpotifyApiService } from './spotify/spotify-api.service';
 import {
   SearchResponse,
   TrackObjectFull,
 } from './spotify/types/spotify-interfaces';
-import { AxiosError } from 'axios';
 @Controller('music')
 export class MusicController {
   constructor(
@@ -121,8 +115,7 @@ export class MusicController {
   }
 
   private async currentPlay() {
-    const response = await this.spotify.getPlaybackState();
-    const playback = response.data;
+    const playback = await this.spotify.getPlaybackState();
     if (playback.item?.type !== 'track') return;
     return this.mapTrackItemToMusic(playback.item);
   }

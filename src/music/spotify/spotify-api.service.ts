@@ -127,14 +127,14 @@ export class SpotifyApiService implements OnModuleInit {
     // TODO : prepare tasks for renewing token
   }
 
-  async getPlaybackState(): Promise<AxiosResponse<CurrentPlaybackResponse>> {
+  async getPlaybackState(): Promise<CurrentPlaybackResponse> {
     return firstValueFrom(
       this.http.get('https://api.spotify.com/v1/me/player', {
         headers: {
           ...this.getAuthorizationHeaderForCurrentPlayer(),
         },
       }),
-    );
+    ).then((response) => response.data);
   }
 
   async skipToNext() {
