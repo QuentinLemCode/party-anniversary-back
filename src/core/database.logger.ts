@@ -47,6 +47,9 @@ class DatabaseLogger implements TypeOrmLogger {
   }
 
   private stringifyParameters(parameters?: unknown[]) {
+    if (!parameters) {
+      return '';
+    }
     try {
       return JSON.stringify(parameters);
     } catch {
