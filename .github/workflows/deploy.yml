@@ -4,6 +4,7 @@ on:
   workflow_run:
     workflows: ["Build and push"]
     types: [completed]
+    branches: [main]
   workflow_dispatch: 
   
 
