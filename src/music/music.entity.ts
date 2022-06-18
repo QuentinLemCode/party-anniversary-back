@@ -24,4 +24,8 @@ export class Music implements MusicInterface {
 
   @OneToMany(() => Queue, (queue) => queue.music)
   queue: Queue[];
+
+  toString(): string {
+    return `${this.artist} - ${this.title}`;
+  }
 }
