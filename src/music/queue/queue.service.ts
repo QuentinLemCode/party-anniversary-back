@@ -18,8 +18,14 @@ export class QueueService implements OnModuleInit {
   private readonly logger = new Logger('Queue');
   private readonly SCHEDULER_NAME = 'music-status';
 
-  onModuleInit() {
-    this.orderNext();
+  private waitingForNext = false;
+
+  async onModuleInit() {
+    const isQueueEmpty = await this.isQueueEmpty();
+    const playingQueue = await this.getPlayingQueue();
+    if (!isQueueEmpty || playingQueue) {
+      await this.orderNext();
+    }
   }
 
   async push(music: Music, userId: number) {
@@ -28,7 +34,7 @@ export class QueueService implements OnModuleInit {
     queue.music = music;
     queue.userId = userId;
     queue = await this.queue.save(queue);
-    if (isQueueEmpty) {
+    if (isQueueEmpty && !this.waitingForNext) {
       await this.orderNext();
     }
     return queue;
@@ -63,16 +69,31 @@ export class QueueService implements OnModuleInit {
     });
   }
 
+  private async getPlayingQueue(): Promise<Queue | null> {
+    const [queue, ...anothers] = await this.queue.find({
+      where: { status: Raw("'1'") },
+      relations: ['music'],
+    });
+    if (anothers.length > 0) {
+      this.queue.remove(anothers);
+    }
+    return queue || null;
+  }
+
   private async isQueueEmpty() {
     const queue = await this.getPendingQueue(1);
     return queue.length === 0;
   }
 
   private async orderNext(timeout?: number) {
+    const playingQueue = await this.getPlayingQueue();
+    if (playingQueue) {
+      return this.checkCurrentStateAndOrderNext(playingQueue);
+    }
     const queue = await this.pop();
     if (queue && this.spotify.isAccountRegistered()) {
       await this.spotify.addToQueue(queue.music.uri);
-      this.setTimeout(queue, timeout);
+      return this.setTimeout(queue, timeout);
     }
   }
 
@@ -115,6 +136,8 @@ export class QueueService implements OnModuleInit {
     );
     let state: string;
     if (currentMusic.item?.uri === queue.music.uri) {
+      queue.status = Status.FINISHED;
+      this.queue.save(queue);
       await this.orderNext(timeout);
       state = 'playing - next music will be put if queue not empty';
     } else {
