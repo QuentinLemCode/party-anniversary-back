@@ -5,9 +5,11 @@ import {
   Column,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { User } from '../../users/user.entity';
 import { Music } from '../music.entity';
 
 export enum Status {
@@ -64,6 +66,13 @@ export class Queue {
     default: () => null,
   })
   deleted_at: Date;
+
+  @Column({ type: 'int', nullable: false })
+  userId: number;
+
+  @ManyToOne(() => User, (user) => user.queued_musics)
+  @JoinColumn({ name: 'userId' })
+  user: User;
 
   play() {
     this.status = Status.PLAYING;

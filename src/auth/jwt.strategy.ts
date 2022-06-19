@@ -4,8 +4,10 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { jwtConstants } from '../core/core.constant';
 
 interface Payload {
-  sub?: string;
+  sub?: number;
   username?: string;
+  exp?: number;
+  iat?: number;
 }
 
 @Injectable()
@@ -18,7 +20,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: Payload) {
+  validate(payload: Payload): Express.User | void {
+    if (!payload.sub || !payload.username) {
+      return;
+    }
     return { userId: payload.sub, username: payload.username };
   }
 }

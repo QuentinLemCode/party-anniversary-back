@@ -22,10 +22,11 @@ export class QueueService implements OnModuleInit {
     this.orderNext();
   }
 
-  async push(music: Music) {
+  async push(music: Music, userId: number) {
     const isQueueEmpty = await this.isQueueEmpty();
     let queue = new Queue();
     queue.music = music;
+    queue.userId = userId;
     queue = await this.queue.save(queue);
     if (isQueueEmpty) {
       await this.orderNext();
@@ -115,7 +116,7 @@ export class QueueService implements OnModuleInit {
     let state: string;
     if (currentMusic.item?.uri === queue.music.uri) {
       await this.orderNext(timeout);
-      state = 'playing - next music put in the queue';
+      state = 'playing - next music will be put if queue not empty';
     } else {
       await this.spotify.addToQueue(queue.music.uri);
       await this.setTimeout(queue, timeout);

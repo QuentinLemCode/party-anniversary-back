@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { Request } from 'express';
 import { Music } from '../music.entity';
 import { QueueService } from './queue.service';
 
@@ -11,8 +21,13 @@ export class QueueController {
     return this.queue.get();
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Post()
-  pushToQueue(@Body() music: Music) {
-    return this.queue.push(music);
+  pushToQueue(@Body() music: Music, @Req() req: Request) {
+    const user = req.user;
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    return this.queue.push(music, user.userId);
   }
 }

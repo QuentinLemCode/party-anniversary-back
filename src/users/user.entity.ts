@@ -5,8 +5,10 @@ import {
   Column,
   Entity,
   Index,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Queue } from '../music/queue/queue.entity';
 
 export enum UserRole {
   ADMIN = 1,
@@ -70,4 +72,7 @@ export class User {
     nullable: true,
   })
   challenge: string;
+
+  @OneToMany(() => Queue, (queue) => queue.user)
+  queued_musics: Queue[];
 }
