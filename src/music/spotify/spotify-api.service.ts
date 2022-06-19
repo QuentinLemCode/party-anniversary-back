@@ -39,6 +39,8 @@ export class SpotifyApiService implements OnModuleInit {
   private currentToken: TokenWithCalculatedExpiration;
   private currentRegisteredAccount: SpotifyAccount;
 
+  // TODO error check on each request
+
   private readonly formUrlContentTypeHeader = {
     'Content-Type': 'application/x-www-form-urlencoded',
   };
@@ -149,7 +151,7 @@ export class SpotifyApiService implements OnModuleInit {
     );
   }
 
-  async addToQueue(uri: SpotifyURI<SpotifyTrackCategory>) {
+  async addToQueue(uri: SpotifyURI<SpotifyTrackCategory>): Promise<void> {
     return firstValueFrom(
       this.http.post(
         'https://api.spotify.com/v1/me/player/queue',
@@ -161,7 +163,9 @@ export class SpotifyApiService implements OnModuleInit {
           },
         },
       ),
-    );
+    ).then(() => {
+      return;
+    });
   }
 
   get redirectUrl() {
