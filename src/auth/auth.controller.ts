@@ -12,6 +12,6 @@ export class AuthController {
   @UseGuards(LocalGuard)
   @Post('auth/login')
   async login(@Req() req: Request): Promise<UserLogin> {
-    return this.auth.login(req.user as User);
+    return this.auth.login(req.user as unknown as User);
   }
 }
