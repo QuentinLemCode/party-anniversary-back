@@ -1,6 +1,7 @@
 import { ScheduleModule } from '@nestjs/schedule';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { FindManyOptions, Raw } from 'typeorm';
 import { Music } from '../music.entity';
 import { SpotifyApiService } from '../spotify/spotify-api.service';
 import {
@@ -51,7 +52,13 @@ describe('QueueService', () => {
           provide: getRepositoryToken(Queue),
           useValue: {
             save: (obj: Queue) => obj,
-            find: () => [mockQueue],
+            find: (conditions: any) => {
+              if (conditions?.where?.status._value === "'1'") {
+                return [];
+              } else {
+                return [mockQueue];
+              }
+            },
           },
         },
         {
