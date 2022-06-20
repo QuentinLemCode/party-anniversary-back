@@ -1,7 +1,6 @@
 import { ScheduleModule } from '@nestjs/schedule';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { FindManyOptions, Raw } from 'typeorm';
 import { Music } from '../music.entity';
 import { SpotifyApiService } from '../spotify/spotify-api.service';
 import {
