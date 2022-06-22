@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { User, UserRole } from '../users/user.entity';
@@ -17,6 +21,9 @@ export class AuthService {
     challenge?: string,
   ) {
     const user = await this.users.find(name);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
     if (user?.role === UserRole.ADMIN) {
       if (!password) {
         throw new ForbiddenException({ cause: 'password' });
