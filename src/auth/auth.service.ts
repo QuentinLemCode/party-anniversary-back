@@ -33,7 +33,7 @@ export class AuthService {
     if (user?.ip === ip) {
       return user;
     }
-    return null;
+    throw new ForbiddenException({ cause: 'challenge' });
   }
 
   async login(user: User): Promise<UserLogin> {
