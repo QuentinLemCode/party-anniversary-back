@@ -40,6 +40,9 @@ export class AuthService {
     if (user?.ip === ip) {
       return user;
     }
+    if (challenge && user.challenge === hashPassword(challenge, user.salt)) {
+      return user;
+    }
     throw new ForbiddenException({ cause: 'challenge' });
   }
 
