@@ -32,7 +32,7 @@ export class MusicController {
   async search(@Query('query') query: string): Promise<Music[]> {
     if (!query) throw new BadRequestException('no query');
     const results = await this.spotify.search(query);
-    return this.mapResults(results.data);
+    return this.mapResults(results);
   }
 
   @UseGuards(JwtGuard)

@@ -1,6 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import {
   Injectable,
+  InternalServerErrorException,
   OnModuleInit,
   ServiceUnavailableException,
 } from '@nestjs/common';
@@ -50,7 +51,7 @@ export class SpotifyApiService implements OnModuleInit {
     this.currentRegisteredAccount = await this.getAccount();
   }
 
-  search(query: string): Promise<AxiosResponse<SearchResponse>> {
+  search(query: string): Promise<SearchResponse> {
     return firstValueFrom(
       this.key.pipe(
         first(),
@@ -68,7 +69,11 @@ export class SpotifyApiService implements OnModuleInit {
           });
         }),
       ),
-    );
+    )
+      .then((response) => response.data)
+      .catch((err) => {
+        throw new InternalServerErrorException(err);
+      });
   }
 
   getToken(): Observable<AxiosResponse<Token>> {
