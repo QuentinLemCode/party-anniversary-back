@@ -82,6 +82,7 @@ export class SpotifyApiService implements OnModuleInit {
     )
       .then((response) => response.data)
       .catch((err) => {
+        Logger.error(err);
         throw new InternalServerErrorException(err);
       });
   }
