@@ -46,7 +46,8 @@ export class AuthService {
     throw new ForbiddenException({ cause: 'challenge' });
   }
 
-  async login(user: User): Promise<UserLogin> {
+  async login(user: any): Promise<UserLogin> {
+    // TODO implement refresh token
     const payload = { username: user.name, sub: user.id };
     const token = this.jwt.sign(payload);
     const expirationTimestamp = (
