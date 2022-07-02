@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
-import { User, UserRole } from '../users/user.entity';
+import { UserRole } from '../users/user.entity';
 import { hashPassword } from '../utils/hash';
 import { UserLogin } from './auth.interface';
 
