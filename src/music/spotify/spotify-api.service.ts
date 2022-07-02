@@ -49,6 +49,7 @@ export class SpotifyApiService implements OnModuleInit {
   ) {}
   private currentToken: TokenWithCalculatedExpiration;
   private currentRegisteredAccount: SpotifyAccount;
+  private readonly logger = new Logger('Queue');
 
   // TODO error check on each request
 
@@ -82,7 +83,7 @@ export class SpotifyApiService implements OnModuleInit {
     )
       .then((response) => response.data)
       .catch((err) => {
-        Logger.error(err);
+        this.logger.error(err);
         throw new InternalServerErrorException(err);
       });
   }
@@ -246,12 +247,12 @@ export class SpotifyApiService implements OnModuleInit {
 
   private get key(): Observable<string> {
     if (this.currentToken?.expiryDate <= new Date()) {
-      Logger.debug(
+      this.logger.debug(
         'Token valid : ' + this.currentToken?.expiryDate + ' <= ' + new Date(),
       );
       return of(this.currentToken.access_token);
     }
-    Logger.debug('App Token expired, refreshing');
+    this.logger.debug('App Token expired, refreshing');
     return this.loadToken().pipe(map((token) => token.access_token));
   }
 }
