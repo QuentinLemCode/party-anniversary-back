@@ -116,7 +116,8 @@ export class MusicController {
 
   private async currentPlay() {
     const playback = await this.spotify.getPlaybackState();
-    if (playback.item?.type !== 'track') return;
-    return this.mapTrackItemToMusic(playback.item);
+    if (!playback.registered) return;
+    if (playback.currentPlayback.item?.type !== 'track') return;
+    return this.mapTrackItemToMusic(playback.currentPlayback.item);
   }
 }

@@ -30,6 +30,15 @@ import {
   SpotifyURI,
 } from './types/spotify-interfaces';
 
+export type PlaybackState =
+  | {
+      registered: true;
+      currentPlayback: CurrentPlaybackResponse;
+    }
+  | {
+      registered: false;
+    };
+
 @Injectable()
 export class SpotifyApiService implements OnModuleInit {
   constructor(
@@ -134,17 +143,34 @@ export class SpotifyApiService implements OnModuleInit {
     // TODO : prepare tasks for renewing token
   }
 
-  async getPlaybackState(): Promise<CurrentPlaybackResponse> {
+  async getPlaybackState(): Promise<PlaybackState> {
+    if (!this.isAccountRegistered) {
+      return {
+        registered: false,
+      };
+    }
     return firstValueFrom(
-      this.http.get('https://api.spotify.com/v1/me/player', {
-        headers: {
-          ...this.getAuthorizationHeaderForCurrentPlayer(),
-        },
-      }),
-    ).then((response) => response.data);
+      this.http
+        .get<CurrentPlaybackResponse>('https://api.spotify.com/v1/me/player', {
+          headers: {
+            ...this.getAuthorizationHeaderForCurrentPlayer(),
+          },
+        })
+        .pipe(
+          map((response) => {
+            return {
+              registered: true,
+              currentPlayback: response.data,
+            };
+          }),
+        ),
+    );
   }
 
   async skipToNext() {
+    if (!this.isAccountRegistered) {
+      return;
+    }
     return firstValueFrom(
       this.http.post(
         'https://api.spotify.com/v1/me/player/next',
@@ -157,6 +183,9 @@ export class SpotifyApiService implements OnModuleInit {
   }
 
   async addToQueue(uri: SpotifyURI<SpotifyTrackCategory>): Promise<void> {
+    if (!this.isAccountRegistered) {
+      return;
+    }
     return firstValueFrom(
       this.http.post(
         'https://api.spotify.com/v1/me/player/queue',

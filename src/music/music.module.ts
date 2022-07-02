@@ -6,9 +6,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Music } from './music.entity';
 import { Queue } from './queue/queue.entity';
 import { QueueController } from './queue/queue.controller';
+import { CoreModule } from '../core/core.module';
 
 @Module({
-  imports: [SpotifyModule, TypeOrmModule.forFeature([Music, Queue])],
+  imports: [
+    SpotifyModule,
+    TypeOrmModule.forFeature([Music, Queue]),
+    CoreModule,
+  ],
   controllers: [MusicController, QueueController],
   providers: [QueueService],
 })

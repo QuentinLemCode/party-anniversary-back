@@ -23,7 +23,7 @@ export class QueueService implements OnModuleInit {
   async onModuleInit() {
     const isQueueEmpty = await this.isQueueEmpty();
     const playingQueue = await this.getPlayingQueue();
-    if (!isQueueEmpty || playingQueue) {
+    if ((!isQueueEmpty || playingQueue) && this.spotify.isAccountRegistered()) {
       await this.orderNext();
     }
   }
@@ -98,8 +98,14 @@ export class QueueService implements OnModuleInit {
   }
 
   private async setTimeout(queue: Queue, timeout?: number) {
+    const playState = await this.spotify.getPlaybackState();
+    if (!playState.registered) {
+      return;
+    }
     if (!timeout) {
-      timeout = await this.getCheckTimeFromCurentPlaybackState();
+      timeout = await this.getCheckTimeFromCurentPlaybackState(
+        playState.currentPlayback,
+      );
     }
     if (this.schedulerRegistry.doesExist('timeout', this.SCHEDULER_NAME)) {
       this.schedulerRegistry.deleteTimeout(this.SCHEDULER_NAME);
@@ -117,11 +123,8 @@ export class QueueService implements OnModuleInit {
   }
 
   private async getCheckTimeFromCurentPlaybackState(
-    currentMusic?: CurrentPlaybackResponse,
+    currentMusic: CurrentPlaybackResponse,
   ) {
-    if (!currentMusic) {
-      currentMusic = await this.spotify.getPlaybackState();
-    }
     return (
       (currentMusic.item?.duration_ms ?? 0) -
       (currentMusic.progress_ms ?? 0) +
@@ -130,7 +133,11 @@ export class QueueService implements OnModuleInit {
   }
 
   private readonly checkCurrentStateAndOrderNext = async (queue: Queue) => {
-    const currentMusic = await this.spotify.getPlaybackState();
+    const playState = await this.spotify.getPlaybackState();
+    if (!playState.registered) {
+      return;
+    }
+    const currentMusic = playState.currentPlayback;
     const timeout = await this.getCheckTimeFromCurentPlaybackState(
       currentMusic,
     );
