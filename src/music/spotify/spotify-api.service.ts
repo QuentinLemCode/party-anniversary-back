@@ -2,6 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import {
   Injectable,
   InternalServerErrorException,
+  Logger,
   OnModuleInit,
   ServiceUnavailableException,
 } from '@nestjs/common';
@@ -244,8 +245,12 @@ export class SpotifyApiService implements OnModuleInit {
 
   private get key(): Observable<string> {
     if (this.currentToken?.expiryDate <= new Date()) {
+      Logger.debug(
+        'Token valid : ' + this.currentToken?.expiryDate + ' <= ' + new Date(),
+      );
       return of(this.currentToken.access_token);
     }
+    Logger.debug('App Token expired, refreshing');
     return this.loadToken().pipe(map((token) => token.access_token));
   }
 }
