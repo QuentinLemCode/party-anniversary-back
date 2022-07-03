@@ -45,7 +45,7 @@ export class QueueService implements OnModuleInit {
       .createQueryBuilder('queue')
       .leftJoinAndSelect('queue.music', 'music')
       .leftJoinAndSelect('queue.user', 'user')
-      .select(['queue.status', 'music', 'user.name'])
+      .select(['queue.status', 'music', 'user.name', 'queue.id'])
       .where('queue.status = "0"')
       .orWhere('queue.status = "1"')
       .orderBy('queue.status', 'DESC')
