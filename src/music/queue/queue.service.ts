@@ -53,8 +53,12 @@ export class QueueService implements OnModuleInit {
       .getMany();
   }
 
-  delete(queue: Queue) {
-    return this.queue.remove([queue]);
+  delete(queueOrId: Queue | string | number) {
+    if (typeof queueOrId === 'string' || typeof queueOrId === 'number') {
+      return this.queue.softRemove([{ id: +queueOrId }]);
+    } else {
+      return this.queue.softRemove([queueOrId]);
+    }
   }
 
   private async pop() {

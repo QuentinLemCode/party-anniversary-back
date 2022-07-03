@@ -2,13 +2,17 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
+  Param,
   Post,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
+import { Roles } from '../../auth/roles.decorator';
+import { UserRole } from '../../users/user.entity';
 import { Music } from '../music.entity';
 import { QueueService } from './queue.service';
 
@@ -29,5 +33,12 @@ export class QueueController {
       throw new BadRequestException('User not found');
     }
     return this.queue.push(music, user.userId);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Roles(UserRole.ADMIN)
+  @Delete(':id')
+  deleteFromQueue(@Param('id') id: string) {
+    return this.queue.delete(id);
   }
 }
