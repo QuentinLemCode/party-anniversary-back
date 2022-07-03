@@ -3,7 +3,7 @@ import { SchedulerRegistry } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Raw, Repository } from 'typeorm';
 import { Music } from '../music.entity';
-import { SpotifyApiService } from '../spotify/spotify-api.service';
+import { SpotifyApiService } from '../spotify/spotify-api/spotify-api.service';
 import { CurrentPlaybackResponse } from '../spotify/types/spotify-interfaces';
 import { Queue, Status } from './queue.entity';
 

@@ -2,7 +2,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Music } from '../music.entity';
-import { SpotifyApiService } from '../spotify/spotify-api.service';
+import { SpotifyApiService } from '../spotify/spotify-api/spotify-api.service';
 import {
   CurrentPlaybackResponse,
   TrackObjectFull,
@@ -13,7 +13,7 @@ import { QueueService } from './queue.service';
 describe('QueueService', () => {
   let service: QueueService;
   const spySpotifyApiService = jest.createMockFromModule<SpotifyApiService>(
-    '../spotify/spotify-api.service',
+    '../spotify/spotify-api/spotify-api.service',
   );
 
   const mockMusic: Music = {

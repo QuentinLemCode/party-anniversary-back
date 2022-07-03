@@ -1,7 +1,7 @@
 import { HttpModule } from '@nestjs/axios';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { SpotifyAccount } from './spotify-account.entity';
+import { SpotifyAccount } from '../spotify-account.entity';
 import { SpotifyApiService } from './spotify-api.service';
 
 describe('SpotifyApiService', () => {

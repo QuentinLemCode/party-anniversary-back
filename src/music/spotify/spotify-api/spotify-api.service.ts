@@ -1,35 +1,22 @@
 import { HttpService } from '@nestjs/axios';
 import {
   Injectable,
-  InternalServerErrorException,
   Logger,
   OnModuleInit,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AxiosResponse } from 'axios';
 import { env } from 'process';
-import {
-  catchError,
-  EMPTY,
-  first,
-  firstValueFrom,
-  map,
-  mergeMap,
-  Observable,
-  of,
-  tap,
-} from 'rxjs';
+import { firstValueFrom, map } from 'rxjs';
 import { Repository } from 'typeorm';
-import { querystring } from '../../utils/querystring';
-import { SpotifyAccount } from './spotify-account.entity';
-import { Token, TokenPlayer, TokenWithCalculatedExpiration } from './token';
+import { querystring } from '../../../utils/querystring';
+import { SpotifyAccount } from '../spotify-account.entity';
+import { TokenPlayer } from '../token';
 import {
   CurrentPlaybackResponse,
-  SearchResponse,
   SpotifyTrackCategory,
   SpotifyURI,
-} from './types/spotify-interfaces';
+} from '../types/spotify-interfaces';
 
 export type PlaybackState =
   | {
@@ -47,9 +34,9 @@ export class SpotifyApiService implements OnModuleInit {
     @InjectRepository(SpotifyAccount)
     private spotifyAccount: Repository<SpotifyAccount>,
   ) {}
-  private currentToken: TokenWithCalculatedExpiration;
+
   private currentRegisteredAccount: SpotifyAccount;
-  private readonly logger = new Logger('Queue');
+  private readonly logger = new Logger('SpotifyAPI');
 
   // TODO error check on each request
 
@@ -58,50 +45,7 @@ export class SpotifyApiService implements OnModuleInit {
   };
 
   async onModuleInit() {
-    this.loadToken().subscribe();
     this.currentRegisteredAccount = await this.getAccount();
-  }
-
-  search(query: string): Promise<SearchResponse> {
-    return firstValueFrom(
-      this.key.pipe(
-        first(),
-        mergeMap((key) => {
-          return this.http.get('https://api.spotify.com/v1/search', {
-            params: {
-              q: query,
-              type: 'track,artist',
-              limit: 20,
-              market: 'FR',
-            },
-            headers: {
-              Authorization: 'Bearer ' + key,
-            },
-          });
-        }),
-      ),
-    )
-      .then((response) => response.data)
-      .catch((err) => {
-        this.logger.error(err);
-        throw new InternalServerErrorException(err);
-      });
-  }
-
-  getToken(): Observable<AxiosResponse<Token>> {
-    return this.http.post(
-      'https://accounts.spotify.com/api/token',
-      'grant_type=client_credentials',
-      {
-        headers: {
-          Authorization:
-            'Basic ' +
-            Buffer.from(
-              env.SPOTIFY_CLIENT_ID + ':' + env.SPOTIFY_CLIENT_KEY,
-            ).toString('base64'),
-        },
-      },
-    );
   }
 
   isAccountRegistered(): boolean {
@@ -221,38 +165,9 @@ export class SpotifyApiService implements OnModuleInit {
     return account;
   }
 
-  private loadToken(): Observable<Token> {
-    return this.getToken().pipe(
-      map((response) => response.data),
-      tap((token) => this.saveToken(token)),
-      catchError((error) => {
-        console.error(error);
-        return EMPTY;
-      }),
-    );
-  }
-
   private getAuthorizationHeaderForCurrentPlayer() {
     return {
       Authorization: `${this.currentRegisteredAccount.token_type} ${this.currentRegisteredAccount.access_token}`,
     };
-  }
-
-  private saveToken(token: Token) {
-    this.currentToken = {
-      ...token,
-      expiryDate: new Date(new Date().getTime() + token.expires_in * 1000),
-    };
-  }
-
-  private get key(): Observable<string> {
-    if (this.currentToken?.expiryDate <= new Date()) {
-      this.logger.debug(
-        'Token valid : ' + this.currentToken?.expiryDate + ' <= ' + new Date(),
-      );
-      return of(this.currentToken.access_token);
-    }
-    this.logger.debug('App Token expired, refreshing');
-    return this.loadToken().pipe(map((token) => token.access_token));
   }
 }

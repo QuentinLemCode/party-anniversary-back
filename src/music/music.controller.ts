@@ -15,7 +15,8 @@ import { Roles } from '../auth/roles.decorator';
 import { UserRole } from '../users/user.entity';
 import { CurrentMusic, Music, SpotifyOAuthDTO } from './music.interface';
 import { QueueService } from './queue/queue.service';
-import { SpotifyApiService } from './spotify/spotify-api.service';
+import { SpotifyApiService } from './spotify/spotify-api/spotify-api.service';
+import { SpotifySearchService } from './spotify/spotify-search/spotify-search.service';
 import {
   SearchResponse,
   TrackObjectFull,
@@ -24,6 +25,7 @@ import {
 export class MusicController {
   constructor(
     private readonly spotify: SpotifyApiService,
+    private readonly spotifySearch: SpotifySearchService,
     private readonly queue: QueueService,
   ) {}
 
@@ -31,7 +33,7 @@ export class MusicController {
   @Get('search')
   async search(@Query('query') query: string): Promise<Music[]> {
     if (!query) throw new BadRequestException('no query');
-    const results = await this.spotify.search(query);
+    const results = await this.spotifySearch.search(query);
     return this.mapResults(results);
   }
 

@@ -3,7 +3,8 @@ import { EMPTY } from 'rxjs';
 import { JwtGuard } from 'src/auth/jwt.guard';
 import { MusicController } from './music.controller';
 import { QueueService } from './queue/queue.service';
-import { SpotifyApiService } from './spotify/spotify-api.service';
+import { SpotifyApiService } from './spotify/spotify-api/spotify-api.service';
+import { SpotifySearchService } from './spotify/spotify-search/spotify-search.service';
 
 describe('MusicController', () => {
   let controller: MusicController;
@@ -14,6 +15,10 @@ describe('MusicController', () => {
       providers: [
         {
           provide: SpotifyApiService,
+          useValue: {},
+        },
+        {
+          provide: SpotifySearchService,
           useValue: {
             search: () => EMPTY,
           },
