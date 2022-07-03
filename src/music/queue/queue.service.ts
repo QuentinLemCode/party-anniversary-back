@@ -51,6 +51,10 @@ export class QueueService implements OnModuleInit {
       .createQueryBuilder('queue')
       .leftJoinAndSelect('queue.music', 'music')
       .leftJoinAndSelect('queue.user', 'user')
+      .loadRelationCountAndMap(
+        'queue.forward_votes',
+        'queue.forward_vote_users',
+      )
       .select(['queue.status', 'music', 'user.name', 'queue.id'])
       .where('queue.status = "0"')
       .orWhere('queue.status = "1"')
