@@ -25,6 +25,10 @@ export class SpotifySearchService implements OnModuleInit {
     const searchRequest = this.searchRequest(query, token);
     return firstValueFrom(
       searchRequest.pipe(
+        catchError((err) => {
+          this.logger.error(err, err?.response, err?.message);
+          return of(err);
+        }),
         mergeMap((response) => {
           if (response.status === 401) {
             this.logger.warn(
@@ -63,9 +67,9 @@ export class SpotifySearchService implements OnModuleInit {
   }
 
   private get key(): Promise<string> {
-    if (this.currentToken?.expiryDate <= new Date()) {
+    if (this.currentToken?.expiryDate >= new Date()) {
       this.logger.log(
-        'Token valid : ' + this.currentToken?.expiryDate + ' <= ' + new Date(),
+        'Token valid : ' + this.currentToken?.expiryDate + ' >= ' + new Date(),
       );
       return Promise.resolve(this.currentToken.access_token);
     }
@@ -73,11 +77,13 @@ export class SpotifySearchService implements OnModuleInit {
   }
 
   private async loadToken(): Promise<Token> {
-    this.logger.log(
-      `App token expired at current date : ${new Date()} for token expiry date : ${
-        this.currentToken?.expiryDate
-      }. Refreshing...`,
-    );
+    if (this.currentToken?.expiryDate) {
+      this.logger.log(
+        `App token expired at current date : ${new Date()} for token expiry date : ${
+          this.currentToken?.expiryDate
+        }. Refreshing...`,
+      );
+    }
     const token = await this.getToken();
     this.saveToken(token);
     return token;

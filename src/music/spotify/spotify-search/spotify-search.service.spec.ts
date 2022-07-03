@@ -1,7 +1,7 @@
 import { HttpModule, HttpService } from '@nestjs/axios';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AxiosResponse } from 'axios';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { SpotifySearchService } from './spotify-search.service';
 
 describe('SpotifySearchService', () => {
@@ -56,17 +56,13 @@ describe('SpotifySearchService', () => {
     const invalidTokenResponse = { ...tokenResponse };
     invalidTokenResponse.data = { access_token: 'invalid' };
 
-    jest
-      .spyOn(httpService, 'post')
-      .mockImplementationOnce(() => of(invalidTokenResponse));
-
     const spyGet = jest
       .spyOn(httpService, 'get')
       .mockImplementation((url, config) => {
         if (config?.headers?.Authorization === 'Bearer valid') {
           return of(validResponse);
         }
-        return of(invalidResponse);
+        return throwError(() => invalidResponse);
       });
     await service.search('test');
     expect(spyGet).toHaveBeenCalledTimes(2);
