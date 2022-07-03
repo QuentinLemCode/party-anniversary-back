@@ -12,6 +12,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { Roles } from '../../auth/roles.decorator';
+import { RolesGuard } from '../../auth/roles.guard';
 import { UserRole } from '../../users/user.entity';
 import { Music } from '../music.entity';
 import { QueueService } from './queue.service';
@@ -35,7 +36,7 @@ export class QueueController {
     return this.queue.push(music, user.userId);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(UserRole.ADMIN)
   @Delete(':id')
   deleteFromQueue(@Param('id') id: string) {

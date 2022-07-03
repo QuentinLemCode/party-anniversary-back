@@ -48,7 +48,7 @@ export class AuthService {
 
   async login(user: any): Promise<UserLogin> {
     // TODO implement refresh token
-    const payload = { username: user.name, sub: user.id };
+    const payload = { username: user.name, sub: user.id, role: user.role };
     const token = this.jwt.sign(payload);
     const expirationTimestamp = (
       this.jwt.decode(token, { complete: true }) as any
