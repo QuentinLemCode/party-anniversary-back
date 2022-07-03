@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { UsersService } from '../../users/users.service';
 import { QueueController } from './queue.controller';
 import { QueueService } from './queue.service';
 
@@ -14,6 +15,12 @@ describe('QueueController', () => {
           useValue: {
             getQueue: () => null,
             addToQueue: () => null,
+          },
+        },
+        {
+          provide: UsersService,
+          useValue: {
+            findById: () => null,
           },
         },
       ],
