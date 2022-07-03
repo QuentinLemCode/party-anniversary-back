@@ -6,6 +6,8 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -73,6 +75,10 @@ export class Queue {
   @ManyToOne(() => User, (user) => user.queued_musics)
   @JoinColumn({ name: 'userId' })
   user: User;
+
+  @ManyToMany(() => User, (user) => user.forward_votes_music)
+  @JoinTable()
+  forward_vote_users: User[];
 
   play() {
     this.status = Status.PLAYING;

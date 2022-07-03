@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { env } from 'process';
 import { jwtConstants } from './core.constant';
 import DatabaseLogger from './database.logger';
+import { UsersModule } from '../users/users.module';
 
 @Global()
 @Module({
@@ -29,7 +30,15 @@ import DatabaseLogger from './database.logger';
       logger: new DatabaseLogger(),
     }),
     ScheduleModule.forRoot(),
+    UsersModule,
   ],
-  exports: [JwtModule, HttpModule, ConfigModule, TypeOrmModule, ScheduleModule],
+  exports: [
+    JwtModule,
+    HttpModule,
+    ConfigModule,
+    TypeOrmModule,
+    ScheduleModule,
+    UsersModule,
+  ],
 })
 export class CoreModule {}

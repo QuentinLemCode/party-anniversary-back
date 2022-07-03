@@ -4,6 +4,7 @@ import {
   Column,
   Entity,
   Index,
+  ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -74,4 +75,7 @@ export class User {
 
   @OneToMany(() => Queue, (queue) => queue.user)
   queued_musics: Queue[];
+
+  @ManyToMany(() => Queue, (queue) => queue.forward_vote_users)
+  forward_votes_music: Queue[];
 }

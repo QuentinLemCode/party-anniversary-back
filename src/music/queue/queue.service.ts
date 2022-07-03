@@ -1,7 +1,13 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  OnModuleInit,
+} from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Raw, Repository } from 'typeorm';
+import { User } from '../../users/user.entity';
 import { Music } from '../music.entity';
 import { SpotifyApiService } from '../spotify/spotify-api/spotify-api.service';
 import { CurrentPlaybackResponse } from '../spotify/types/spotify-interfaces';
@@ -59,6 +65,23 @@ export class QueueService implements OnModuleInit {
     } else {
       return this.queue.softRemove([queueOrId]);
     }
+  }
+
+  async forward(queueOrId: Queue | string | number, user: User) {
+    let queue: Queue;
+    if (typeof queueOrId === 'string' || typeof queueOrId === 'number') {
+      [queue] = await this.queue.find({
+        where: { id: +queueOrId },
+        relations: ['forward_vote_users'],
+      });
+    } else {
+      queue = queueOrId;
+    }
+    if (queue.forward_vote_users?.find((u) => u.id === user.id)) {
+      throw new BadRequestException('You already voted for this music');
+    }
+    queue.forward_vote_users = [...(queue.forward_vote_users ?? []), user];
+    await this.queue.save(queue);
   }
 
   private async pop() {
