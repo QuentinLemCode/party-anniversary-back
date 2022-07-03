@@ -8,6 +8,6 @@ import { SpotifySearchService } from './spotify-search/spotify-search.service';
 @Module({
   providers: [SpotifyApiService, SpotifySearchService],
   imports: [TypeOrmModule.forFeature([SpotifyAccount]), HttpModule],
-  exports: [SpotifyApiService],
+  exports: [SpotifyApiService, SpotifySearchService],
 })
 export class SpotifyModule {}
