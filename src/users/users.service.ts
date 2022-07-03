@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { randomBytes } from 'crypto';
 import { Repository } from 'typeorm';
 import { hashPassword } from '../utils/hash';
 import { User } from './user.entity';
@@ -24,6 +25,7 @@ export class UsersService {
       throw new BadRequestException('Missing challenge');
     }
     const user = this.users.create();
+    user.salt = randomBytes(16).toString('base64');
     user.name = registerDTO.name;
     user.ip = ip;
     user.challenge = hashPassword(registerDTO.challenge, user.salt);

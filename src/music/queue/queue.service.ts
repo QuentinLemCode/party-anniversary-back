@@ -41,7 +41,16 @@ export class QueueService implements OnModuleInit {
   }
 
   get() {
-    return this.getPendingQueue();
+    return this.queue
+      .createQueryBuilder('queue')
+      .leftJoinAndSelect('queue.music', 'music')
+      .leftJoinAndSelect('queue.user', 'user')
+      .select(['queue.status', 'music', 'user.name'])
+      .where('queue.status = "0"')
+      .orWhere('queue.status = "1"')
+      .orderBy('queue.status', 'DESC')
+      .addOrderBy('queue.updated_at', 'ASC')
+      .getMany();
   }
 
   delete(queue: Queue) {

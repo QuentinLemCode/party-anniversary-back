@@ -1,4 +1,3 @@
-import { randomBytes } from 'crypto';
 import {
   BeforeInsert,
   BeforeUpdate,
@@ -64,9 +63,9 @@ export class User {
   password: string;
 
   @Column({
-    nullable: true,
+    nullable: false,
   })
-  salt: string = randomBytes(16).toString('base64');
+  salt: string;
 
   @Column({
     nullable: true,
