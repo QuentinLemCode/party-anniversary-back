@@ -24,6 +24,9 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+    if (user.locked) {
+      throw new ForbiddenException({ cause: 'locked' });
+    }
     if (user?.role === UserRole.ADMIN) {
       if (!password) {
         throw new ForbiddenException({ cause: 'password' });
@@ -35,14 +38,18 @@ export class AuthService {
       }
     }
     if (user?.noIPverification && !challenge) {
+      this.users.addLoginTry(user);
       throw new ForbiddenException({ cause: 'challenge' });
     }
     if (user?.ip === ip) {
+      this.users.resetLoginTry(user);
       return user;
     }
     if (challenge && user.challenge === hashPassword(challenge, user.salt)) {
+      this.users.resetLoginTry(user);
       return user;
     }
+    this.users.addLoginTry(user);
     throw new ForbiddenException({ cause: 'challenge' });
   }
 

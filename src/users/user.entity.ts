@@ -73,6 +73,16 @@ export class User {
   })
   challenge: string;
 
+  @Column({
+    default: 0,
+  })
+  loginTries: number;
+
+  @Column({
+    default: false,
+  })
+  locked: boolean;
+
   @OneToMany(() => Queue, (queue) => queue.user)
   queued_musics: Queue[];
 

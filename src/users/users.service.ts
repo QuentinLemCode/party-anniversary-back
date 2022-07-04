@@ -31,4 +31,17 @@ export class UsersService {
     user.challenge = hashPassword(registerDTO.challenge, user.salt);
     return this.users.save(user);
   }
+
+  async addLoginTry(user: User) {
+    user.loginTries += 1;
+    if (user.loginTries >= 3) {
+      user.locked = true;
+    }
+    this.users.save(user);
+  }
+
+  async resetLoginTry(user: User) {
+    user.loginTries = 0;
+    this.users.save(user);
+  }
 }
