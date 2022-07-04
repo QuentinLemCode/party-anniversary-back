@@ -20,9 +20,13 @@ export class UsersService {
     return this.users.findOneBy({ id });
   }
 
-  register(registerDTO: RegisterUserDTO, ip: string) {
+  async register(registerDTO: RegisterUserDTO, ip: string) {
     if (!registerDTO.challenge) {
-      throw new BadRequestException('Missing challenge');
+      throw new BadRequestException({ cause: 'challenge' });
+    }
+    const userWithIp = await this.users.findOneBy({ ip });
+    if (userWithIp !== null) {
+      throw new BadRequestException({ cause: 'ip' });
     }
     const user = this.users.create();
     user.salt = randomBytes(16).toString('base64');
