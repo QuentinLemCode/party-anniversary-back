@@ -1,6 +1,5 @@
 import {
   BeforeInsert,
-  BeforeSoftRemove,
   BeforeUpdate,
   Column,
   DeleteDateColumn,
@@ -28,11 +27,6 @@ export class User {
   insertDates() {
     this.updated_at = new Date();
     this.created_at = new Date();
-  }
-
-  @BeforeSoftRemove()
-  updateStatus() {
-    this.ip = null;
   }
 
   @DeleteDateColumn({

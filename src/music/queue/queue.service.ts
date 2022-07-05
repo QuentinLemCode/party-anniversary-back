@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Raw, Repository } from 'typeorm';
 import { User } from '../../users/user.entity';
@@ -38,12 +43,15 @@ export class QueueService {
       .getMany();
   }
 
-  delete(queueOrId: Queue | string | number) {
+  async delete(queueOrId: Queue | string | number) {
     if (typeof queueOrId === 'string' || typeof queueOrId === 'number') {
-      return this.queue.softRemove([{ id: +queueOrId }]);
-    } else {
-      return this.queue.softRemove([queueOrId]);
+      const queue = await this.queue.findOneBy({ id: +queueOrId });
+      if (!queue) {
+        throw new NotFoundException('Queue not found');
+      }
+      queueOrId = queue;
     }
+    return this.queue.softRemove(queueOrId);
   }
 
   async vote(queueOrId: Queue | string | number, user: User) {

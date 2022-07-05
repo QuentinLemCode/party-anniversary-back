@@ -24,8 +24,15 @@ export class UsersService {
     return this.users.findOneBy({ id });
   }
 
-  delete(id: number) {
-    return this.users.softRemove({ id });
+  async delete(id: number) {
+    const user = await this.users.findOneBy({ id });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    // because typeorm decorator doesn't work with soft delete
+    user.ip = null;
+    await this.users.save(user);
+    return this.users.softRemove(user);
   }
 
   getAll() {
@@ -58,10 +65,7 @@ export class UsersService {
     if (!registerDTO.challenge) {
       throw new BadRequestException({ cause: 'challenge' });
     }
-    const userWithIp = await this.users.findOneBy({ ip });
-    if (userWithIp !== null) {
-      throw new BadRequestException({ cause: 'ip' });
-    }
+    await this.hasAlreadyIp(ip);
     const user = this.users.create();
     user.salt = randomBytes(16).toString('base64');
     user.name = registerDTO.name;
@@ -70,28 +74,36 @@ export class UsersService {
     return this.users.save(user);
   }
 
-  async removeIPverification(user: User) {
+  removeIPverification(user: User) {
     user.noIPverification = true;
     user.ip = null;
-    this.users.save(user);
+    return this.users.save(user);
   }
 
   async saveIp(user: User, ip: string) {
     if (user.noIPverification) return;
+    await this.hasAlreadyIp(ip);
     user.ip = ip;
-    this.users.save(user);
+    return this.users.save(user);
   }
 
-  async addLoginTry(user: User) {
+  addLoginTry(user: User) {
     user.loginTries += 1;
     if (user.loginTries >= 3) {
       user.locked = true;
     }
-    this.users.save(user);
+    return this.users.save(user);
   }
 
-  async resetLoginTry(user: User) {
+  resetLoginTry(user: User) {
     user.loginTries = 0;
-    this.users.save(user);
+    return this.users.save(user);
+  }
+
+  private async hasAlreadyIp(ip: string) {
+    const userWithIp = await this.users.findOneBy({ ip });
+    if (userWithIp !== null) {
+      throw new BadRequestException({ cause: 'ip' });
+    }
   }
 }
