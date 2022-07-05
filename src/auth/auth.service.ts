@@ -38,16 +38,16 @@ export class AuthService {
       }
     }
     if (user?.noIPverification && !challenge) {
-      this.users.addLoginTry(user);
+      await this.users.addLoginTry(user);
       throw new ForbiddenException({ cause: 'challenge' });
     }
     if (user?.ip === ip) {
-      this.users.resetLoginTry(user);
+      await this.users.resetLoginTry(user);
       return user;
     }
     if (challenge && user.challenge === hashPassword(challenge, user.salt)) {
-      this.users.resetLoginTry(user);
-      this.users.saveIp(user, ip);
+      await this.users.resetLoginTry(user);
+      await this.users.saveIp(user, ip);
       return user;
     }
     this.users.addLoginTry(user);
