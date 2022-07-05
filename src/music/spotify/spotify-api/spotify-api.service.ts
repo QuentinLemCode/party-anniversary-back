@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { env } from 'process';
-import { firstValueFrom, map } from 'rxjs';
+import { catchError, firstValueFrom, map, throwError } from 'rxjs';
 import { Repository } from 'typeorm';
 import { querystring } from '../../../utils/querystring';
 import { SpotifyAccount } from '../spotify-account.entity';
@@ -113,6 +113,10 @@ export class SpotifyApiService implements OnModuleInit {
           },
         })
         .pipe(
+          catchError((err) => {
+            this.logError(err);
+            return throwError(() => err);
+          }),
           map((response) => {
             return {
               registered: true,
@@ -128,13 +132,20 @@ export class SpotifyApiService implements OnModuleInit {
       return;
     }
     return firstValueFrom(
-      this.http.post(
-        'https://api.spotify.com/v1/me/player/next',
-        {},
-        {
-          headers: this.getAuthorizationHeaderForCurrentPlayer(),
-        },
-      ),
+      this.http
+        .post(
+          'https://api.spotify.com/v1/me/player/next',
+          {},
+          {
+            headers: this.getAuthorizationHeaderForCurrentPlayer(),
+          },
+        )
+        .pipe(
+          catchError((err) => {
+            this.logError(err);
+            return throwError(() => err);
+          }),
+        ),
     );
   }
 
@@ -143,16 +154,23 @@ export class SpotifyApiService implements OnModuleInit {
       return;
     }
     return firstValueFrom(
-      this.http.post(
-        'https://api.spotify.com/v1/me/player/queue',
-        {},
-        {
-          headers: this.getAuthorizationHeaderForCurrentPlayer(),
-          params: {
-            uri,
+      this.http
+        .post(
+          'https://api.spotify.com/v1/me/player/queue',
+          {},
+          {
+            headers: this.getAuthorizationHeaderForCurrentPlayer(),
+            params: {
+              uri,
+            },
           },
-        },
-      ),
+        )
+        .pipe(
+          catchError((err) => {
+            this.logError(err);
+            return throwError(() => err);
+          }),
+        ),
     ).then(() => {
       return;
     });
@@ -163,15 +181,22 @@ export class SpotifyApiService implements OnModuleInit {
       return;
     }
     return firstValueFrom(
-      this.http.put(
-        'https://api.spotify.com/v1/me/player/play',
-        {
-          context_uri: uri,
-        },
-        {
-          headers: this.getAuthorizationHeaderForCurrentPlayer(),
-        },
-      ),
+      this.http
+        .put(
+          'https://api.spotify.com/v1/me/player/play',
+          {
+            uris: [uri],
+          },
+          {
+            headers: this.getAuthorizationHeaderForCurrentPlayer(),
+          },
+        )
+        .pipe(
+          catchError((err) => {
+            this.logError(err);
+            return throwError(() => err);
+          }),
+        ),
     );
   }
 
@@ -195,5 +220,12 @@ export class SpotifyApiService implements OnModuleInit {
     return {
       Authorization: `${this.currentRegisteredAccount.token_type} ${this.currentRegisteredAccount.access_token}`,
     };
+  }
+
+  private logError(err: any) {
+    const message = [err?.message, err?.response?.data?.error?.message]
+      .filter((a) => !!a)
+      .join(' - ');
+    this.logger.error(message);
   }
 }

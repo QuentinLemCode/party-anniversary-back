@@ -19,7 +19,7 @@ export class QueueService {
   private readonly logger = new Logger('Queue');
 
   async push(music: Music, userId: number) {
-    const alreadyInQueue = await this.findInQueue(music.uri);
+    const alreadyInQueue = await this.findInPendingQueue(music.uri);
     if (alreadyInQueue) {
       throw new BadRequestException({ cause: 'queue' });
     }
@@ -30,11 +30,12 @@ export class QueueService {
     return queue;
   }
 
-  findInQueue(uri: string) {
+  findInPendingQueue(uri: string) {
     return this.queue
       .createQueryBuilder('queue')
       .leftJoinAndSelect('queue.music', 'music')
       .where('music.uri = :uri', { uri })
+      .andWhere('queue.status IN (:status)', { status: ['0', '1'] })
       .getOne();
   }
 
@@ -124,6 +125,11 @@ export class QueueService {
   }
 
   public async setPlaying(queue: Queue) {
+    queue.status = Status.PLAYING;
+    await this.queue.save(queue);
+  }
+
+  public async setFinished(queue: Queue) {
     queue.status = Status.FINISHED;
     await this.queue.save(queue);
   }

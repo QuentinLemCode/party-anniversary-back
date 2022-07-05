@@ -32,7 +32,8 @@ export class QueueEngineService {
   ) {}
 
   private readonly logger = new Logger('QueueEngine');
-  private readonly SCHEDULER_NAME = 'music-status';
+  private readonly SONG_START_SCHEDULER_NAME = 'music-start';
+  private readonly SONG_END_SCHEDULER_NAME = 'music-end';
 
   private static readonly START_ENGINE_FAIL =
     'No queue found or spotify account not registered : unable to start the engine';
@@ -51,23 +52,23 @@ export class QueueEngineService {
     await this.spotify.play(queue.music.uri);
     await this.queues.setPlaying(queue);
     // we wait a bit for the music launch
-    setTimeout(() => this.setTimeout(queue), 5000);
-    this.isRunning = true;
-    this.logger.log('Engine started');
+    setTimeout(() => {
+      this.launchEngine(queue);
+    }, 5000);
     return {
       started: true,
     };
   }
 
   stop() {
-    this.deleteCheckTimeout();
+    this.deleteTimeouts();
     this.isRunning = false;
   }
 
   async refreshPlayingQueue() {
     const queue = await this.queues.getPlayingQueue();
     if (!queue) return;
-    this.queues.setPlaying(queue);
+    this.queues.setFinished(queue);
   }
 
   async forward(queueOrId: Queue | string | number, user: User) {
@@ -89,16 +90,125 @@ export class QueueEngineService {
         return;
       }
     }
-    this.deleteCheckTimeout();
+    this.deleteTimeouts();
     await this.spotify.addToQueue(queue.music.uri);
     await this.spotify.skipToNext();
     await this.queues.setPlaying(queue);
-    this.setTimeout(queue);
+    this.launchEngine(queue);
   }
 
-  private deleteCheckTimeout() {
-    if (this.schedulerRegistry.doesExist('timeout', this.SCHEDULER_NAME)) {
-      this.schedulerRegistry.deleteTimeout(this.SCHEDULER_NAME);
+  // Engines related functions
+
+  private async launchEngine(queue: Queue) {
+    const playState = await this.getPlayState();
+    if (!playState) return;
+
+    this.logger.log('Engine started');
+
+    const timeoutEndOfSong = this.calculateWhenBeforeCurrentSongFinish(
+      playState.currentPlayback,
+    );
+
+    this.deleteTimeouts();
+    this.startTimeout(timeoutEndOfSong, this.SONG_END_SCHEDULER_NAME, () =>
+      this.endOfSongEvent(queue),
+    );
+  }
+
+  // end of song
+  // we add the next song to the queue
+  // we put the song state as finished
+  // we then program the start of song event timeout
+  private async endOfSongEvent(queue: Queue) {
+    const playState = await this.getPlayState();
+    if (!playState) return;
+
+    await this.queues.setFinished(queue);
+    const currentMusic = playState.currentPlayback;
+    if (currentMusic.item?.uri !== queue.music.uri) {
+      return this.stop();
+    }
+    const nextQueue = await this.queues.pop();
+    if (!nextQueue) {
+      this.logger.log('End of song : Retrieve music from backlog');
+      // get backlog
+      return;
+    } else {
+      await this.spotify.addToQueue(nextQueue.music.uri);
+      this.logger.log(
+        'End of song : added music to spotify queue ' +
+          nextQueue.music.toString(),
+      );
+    }
+    const timeoutBeginNextSong = this.calculateWhenNextSongBegin(
+      playState.currentPlayback,
+    );
+    this.startTimeout(
+      timeoutBeginNextSong,
+      this.SONG_START_SCHEDULER_NAME,
+      () => this.startOfSongEvent(queue),
+    );
+  }
+
+  // start of song
+  // we check the song has been started
+  // we put the song state as playing
+  // we then program the end of song event timeout
+  private async startOfSongEvent(queue: Queue) {
+    const playState = await this.getPlayState();
+    if (!playState) return;
+
+    const currentMusic = playState.currentPlayback;
+    if (currentMusic.item?.uri !== queue.music.uri) {
+      return this.stop();
+    }
+    await this.queues.setPlaying(queue);
+    const timeoutEndOfSong = this.calculateWhenBeforeCurrentSongFinish(
+      playState.currentPlayback,
+    );
+    this.startTimeout(timeoutEndOfSong, this.SONG_END_SCHEDULER_NAME, () =>
+      this.endOfSongEvent(queue),
+    );
+    this.logger.log(`End of song : ${queue.music.toString()}`);
+  }
+
+  private async getPlayState() {
+    if (!this.spotify.isAccountRegistered()) {
+      this.stop();
+      return null;
+    }
+    const playState = await this.spotify.getPlaybackState();
+    if (!playState.registered || !playState.currentPlayback.is_playing) {
+      this.stop();
+      return null;
+    }
+    return playState;
+  }
+
+  // Time related functions
+
+  private startTimeout(
+    timeout: number,
+    name: string,
+    func: (queue: Queue) => void,
+  ) {
+    const timeoutFunction = setTimeout(func, timeout);
+    this.schedulerRegistry.addTimeout(name, timeoutFunction);
+  }
+
+  private deleteTimeouts() {
+    if (
+      this.schedulerRegistry.doesExist(
+        'timeout',
+        this.SONG_START_SCHEDULER_NAME,
+      )
+    ) {
+      this.schedulerRegistry.deleteTimeout(this.SONG_START_SCHEDULER_NAME);
+    }
+    if (
+      this.schedulerRegistry.doesExist('timeout', this.SONG_END_SCHEDULER_NAME)
+    ) {
+      this.schedulerRegistry.deleteTimeout(this.SONG_END_SCHEDULER_NAME);
     }
   }
 
@@ -106,57 +216,17 @@ export class QueueEngineService {
     return (
       (currentMusic.item?.duration_ms ?? 0) -
       (currentMusic.progress_ms ?? 0) +
-      1000
+      2000
     );
   }
 
-  private async addNextToQueue(timeout?: number) {
-    const queue = await this.queues.pop();
-    if (!queue || !this.spotify.isAccountRegistered()) {
-      return;
-    }
-    await this.spotify.addToQueue(queue.music.uri);
-    return this.setTimeout(queue, timeout);
-  }
-
-  private async setTimeout(queue: Queue, timeout?: number) {
-    const playState = await this.spotify.getPlaybackState();
-    if (!playState.registered) return this.stop();
-
-    if (!timeout) {
-      timeout = this.calculateWhenNextSongBegin(playState.currentPlayback);
-    }
-    this.deleteCheckTimeout();
-    const checkTimeout = setTimeout(
-      () => this.checkPlaybackState(queue),
-      timeout,
-    );
-    this.schedulerRegistry.addTimeout('music-status', checkTimeout);
-    this.logger.log(
-      `Added ${queue.music.toString()} to the spotify playlist. State will be checked in ${(
-        timeout / 1000
-      ).toFixed()} seconds`,
+  private calculateWhenBeforeCurrentSongFinish(
+    currentMusic: CurrentPlaybackResponse,
+  ) {
+    return (
+      (currentMusic.item?.duration_ms ?? 0) -
+      (currentMusic.progress_ms ?? 0) -
+      2000
     );
   }
-
-  private readonly checkPlaybackState = async (queue: Queue) => {
-    const playState = await this.spotify.getPlaybackState();
-    if (!playState.registered || !playState.currentPlayback.is_playing)
-      return this.stop();
-
-    const currentMusic = playState.currentPlayback;
-    const timeout = this.calculateWhenNextSongBegin(currentMusic);
-    let state: string;
-    if (currentMusic.item?.uri === queue.music.uri) {
-      await this.queues.setPlaying(queue);
-      await this.addNextToQueue(timeout);
-      state = `Currently playing ${queue.music.toString()} - adding next to queue : ${queue.music.toString()}`;
-    } else {
-      await this.spotify.addToQueue(queue.music.uri);
-      await this.setTimeout(queue, timeout);
-      state =
-        'not playing - put the song again and waiting for the current music to finish';
-    }
-    this.logger.log(`State for ${queue.music.title} : ${state}`);
-  };
 }

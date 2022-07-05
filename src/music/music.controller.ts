@@ -82,6 +82,7 @@ export class MusicController {
       this.queueEngine.stop();
     } else if (control.start) {
       const status = await this.queueEngine.start();
+      await new Promise((r) => setTimeout(r, 2000));
       return this.generateState(status.message);
     } else if (control.start === false) {
       this.queueEngine.stop();
