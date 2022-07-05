@@ -76,7 +76,6 @@ describe('QueueService', () => {
       });
     });
     service = module.get<QueueService>(QueueService);
-    service.onModuleInit();
   });
 
   it('should be defined', () => {

@@ -1,48 +1,23 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-  OnModuleInit,
-} from '@nestjs/common';
-import { SchedulerRegistry } from '@nestjs/schedule';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Raw, Repository } from 'typeorm';
 import { User } from '../../users/user.entity';
 import { Music } from '../music.entity';
-import { SpotifyApiService } from '../spotify/spotify-api/spotify-api.service';
-import { CurrentPlaybackResponse } from '../spotify/types/spotify-interfaces';
 import { Queue, Status } from './queue.entity';
 
 @Injectable()
-export class QueueService implements OnModuleInit {
+export class QueueService {
   constructor(
     @InjectRepository(Queue) private readonly queue: Repository<Queue>,
-    private readonly spotify: SpotifyApiService,
-    private readonly schedulerRegistry: SchedulerRegistry,
   ) {}
 
   private readonly logger = new Logger('Queue');
-  private readonly SCHEDULER_NAME = 'music-status';
-
-  private waitingForNext = false;
-
-  async onModuleInit() {
-    const isQueueEmpty = await this.isQueueEmpty();
-    const playingQueue = await this.getPlayingQueue();
-    if ((!isQueueEmpty || playingQueue) && this.spotify.isAccountRegistered()) {
-      await this.orderNext();
-    }
-  }
 
   async push(music: Music, userId: number) {
-    const isQueueEmpty = await this.isQueueEmpty();
     let queue = new Queue();
     queue.music = music;
     queue.userId = userId;
     queue = await this.queue.save(queue);
-    if (isQueueEmpty && !this.waitingForNext) {
-      await this.orderNext();
-    }
     return queue;
   }
 
@@ -71,7 +46,7 @@ export class QueueService implements OnModuleInit {
     }
   }
 
-  async forward(queueOrId: Queue | string | number, user: User) {
+  async vote(queueOrId: Queue | string | number, user: User) {
     let queue: Queue;
     if (typeof queueOrId === 'string' || typeof queueOrId === 'number') {
       [queue] = await this.queue.find({
@@ -86,9 +61,10 @@ export class QueueService implements OnModuleInit {
     }
     queue.forward_vote_users = [...(queue.forward_vote_users ?? []), user];
     await this.queue.save(queue);
+    return queue;
   }
 
-  private async pop() {
+  async pop() {
     const queue = await this.getPendingQueue(1);
     if (queue.length === 0) {
       return null;
@@ -109,7 +85,7 @@ export class QueueService implements OnModuleInit {
     });
   }
 
-  private async getPlayingQueue(): Promise<Queue | null> {
+  public async getPlayingQueue(): Promise<Queue | null> {
     const [queue, ...anothers] = await this.queue.find({
       where: { status: Raw("'1'") },
       relations: ['music'],
@@ -125,74 +101,8 @@ export class QueueService implements OnModuleInit {
     return queue.length === 0;
   }
 
-  private async orderNext(timeout?: number) {
-    const playingQueue = await this.getPlayingQueue();
-    if (playingQueue) {
-      return this.checkCurrentStateAndOrderNext(playingQueue);
-    }
-    const queue = await this.pop();
-    if (queue && this.spotify.isAccountRegistered()) {
-      await this.spotify.addToQueue(queue.music.uri);
-      return this.setTimeout(queue, timeout);
-    }
+  public async setPlaying(queue: Queue) {
+    queue.status = Status.FINISHED;
+    await this.queue.save(queue);
   }
-
-  private async setTimeout(queue: Queue, timeout?: number) {
-    const playState = await this.spotify.getPlaybackState();
-    if (!playState.registered) {
-      return;
-    }
-    if (!timeout) {
-      timeout = await this.getCheckTimeFromCurentPlaybackState(
-        playState.currentPlayback,
-      );
-    }
-    if (this.schedulerRegistry.doesExist('timeout', this.SCHEDULER_NAME)) {
-      this.schedulerRegistry.deleteTimeout(this.SCHEDULER_NAME);
-    }
-    const checkTimeout = setTimeout(
-      () => this.checkCurrentStateAndOrderNext(queue),
-      timeout,
-    );
-    this.schedulerRegistry.addTimeout('music-status', checkTimeout);
-    this.logger.log(
-      `Added ${queue.music.toString()} to the spotify playlist. State will be checked in ${(
-        timeout / 1000
-      ).toFixed()} seconds`,
-    );
-  }
-
-  private async getCheckTimeFromCurentPlaybackState(
-    currentMusic: CurrentPlaybackResponse,
-  ) {
-    return (
-      (currentMusic.item?.duration_ms ?? 0) -
-      (currentMusic.progress_ms ?? 0) +
-      1000
-    );
-  }
-
-  private readonly checkCurrentStateAndOrderNext = async (queue: Queue) => {
-    const playState = await this.spotify.getPlaybackState();
-    if (!playState.registered) {
-      return;
-    }
-    const currentMusic = playState.currentPlayback;
-    const timeout = await this.getCheckTimeFromCurentPlaybackState(
-      currentMusic,
-    );
-    let state: string;
-    if (currentMusic.item?.uri === queue.music.uri) {
-      queue.status = Status.FINISHED;
-      this.queue.save(queue);
-      await this.orderNext(timeout);
-      state = 'playing - next music will be put if queue not empty';
-    } else {
-      await this.spotify.addToQueue(queue.music.uri);
-      await this.setTimeout(queue, timeout);
-      state =
-        'not playing - put the song again and waiting for the current music to finish';
-    }
-    this.logger.log(`State for ${queue.music.title} : ${state}`);
-  };
 }

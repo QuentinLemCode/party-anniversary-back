@@ -16,6 +16,7 @@ import { RolesGuard } from '../../auth/roles.guard';
 import { UserRole } from '../../users/user.entity';
 import { UsersService } from '../../users/users.service';
 import { Music } from '../music.entity';
+import { QueueEngineService } from './queue-engine/queue-engine.service';
 import { QueueService } from './queue.service';
 
 @Controller('queue')
@@ -23,6 +24,7 @@ export class QueueController {
   constructor(
     private readonly queue: QueueService,
     private readonly users: UsersService,
+    private readonly queueEngine: QueueEngineService,
   ) {}
 
   @Get()
@@ -50,7 +52,7 @@ export class QueueController {
     if (user === null) {
       throw new BadRequestException('User not found in database');
     }
-    return this.queue.forward(id, user);
+    return this.queueEngine.forward(id, user);
   }
 
   private getUser(req: Request) {

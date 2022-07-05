@@ -149,6 +149,23 @@ export class SpotifyApiService implements OnModuleInit {
     });
   }
 
+  async play(uri: SpotifyURI<SpotifyTrackCategory>) {
+    if (!this.isAccountRegistered) {
+      return;
+    }
+    return firstValueFrom(
+      this.http.put(
+        'https://api.spotify.com/v1/me/player/play',
+        {
+          context_uri: uri,
+        },
+        {
+          headers: this.getAuthorizationHeaderForCurrentPlayer(),
+        },
+      ),
+    );
+  }
+
   get redirectUrl() {
     if (!process.env.REDIRECT_HOST) {
       throw new ServiceUnavailableException('Redirect host not set on server');
