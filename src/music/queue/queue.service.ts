@@ -19,11 +19,23 @@ export class QueueService {
   private readonly logger = new Logger('Queue');
 
   async push(music: Music, userId: number) {
+    const alreadyInQueue = await this.findInQueue(music.uri);
+    if (alreadyInQueue) {
+      throw new BadRequestException({ cause: 'queue' });
+    }
     let queue = new Queue();
     queue.music = music;
     queue.userId = userId;
     queue = await this.queue.save(queue);
     return queue;
+  }
+
+  findInQueue(uri: string) {
+    return this.queue
+      .createQueryBuilder('queue')
+      .leftJoinAndSelect('queue.music', 'music')
+      .where('music.uri = :uri', { uri })
+      .getOne();
   }
 
   get() {
@@ -51,6 +63,8 @@ export class QueueService {
       }
       queueOrId = queue;
     }
+    queueOrId.status = Status.CANCELLED;
+    await this.queue.save(queueOrId);
     return this.queue.softRemove(queueOrId);
   }
 
