@@ -28,6 +28,23 @@ export class UsersService {
     return this.users.softRemove({ id });
   }
 
+  getAll() {
+    return this.users.find({
+      select: [
+        'id',
+        'name',
+        'role',
+        'locked',
+        'noIPverification',
+        'deleted_at',
+        'created_at',
+        'updated_at',
+        'ip',
+        'loginTries',
+      ],
+    });
+  }
+
   async unlock(id: number) {
     const user = await this.users.findOneBy({ id });
     if (!user) {

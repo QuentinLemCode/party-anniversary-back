@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Param,
   Post,
   Req,
@@ -33,6 +34,13 @@ export class UsersController {
     }
     const user = await this.users.register(registerUserDTO, ip);
     return this.auth.login(user);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Get()
+  getAll() {
+    return this.users.getAll();
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
