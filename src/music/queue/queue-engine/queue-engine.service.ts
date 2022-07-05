@@ -49,6 +49,7 @@ export class QueueEngineService {
         message,
       };
     }
+    this.isRunning = true;
     await this.spotify.play(queue.music.uri);
     await this.queues.setPlaying(queue);
     // we wait a bit for the music launch
