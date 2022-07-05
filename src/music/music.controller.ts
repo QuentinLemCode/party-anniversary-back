@@ -12,6 +12,7 @@ import { AxiosError } from 'axios';
 import { randomUUID } from 'crypto';
 import { JwtGuard } from 'src/auth/jwt.guard';
 import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 import { UserRole } from '../users/user.entity';
 import { CurrentMusic, Music, SpotifyOAuthDTO } from './music.interface';
 import { QueueEngineService } from './queue/queue-engine/queue-engine.service';
@@ -25,7 +26,7 @@ import {
 
 interface Control {
   start: boolean;
-  logout: boolean;
+  logout?: boolean;
 }
 @Controller('music')
 export class MusicController {
@@ -44,21 +45,7 @@ export class MusicController {
     return this.mapResults(results);
   }
 
-  @UseGuards(JwtGuard)
-  @Roles(UserRole.ADMIN)
-  @Post('control')
-  async control(@Body() control: Control) {
-    if (control.start) {
-      await this.queueEngine.start();
-    } else if (control.start === false) {
-      await this.queueEngine.stop();
-    }
-    if (control.logout) {
-      await this.spotify.unregisterPlayer();
-    }
-  }
-
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Get('spotify-login')
   spotifyLogin() {
@@ -86,19 +73,25 @@ export class MusicController {
     return url.toString();
   }
 
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Post()
+  async control(@Body() control: Control): Promise<CurrentMusic> {
+    if (control.logout) {
+      await this.spotify.unregisterPlayer();
+      this.queueEngine.stop();
+    } else if (control.start) {
+      const status = await this.queueEngine.start();
+      return this.generateState(status.message);
+    } else if (control.start === false) {
+      this.queueEngine.stop();
+    }
+    return this.generateState();
+  }
+
   @Get()
   async currentState(): Promise<CurrentMusic> {
-    const isSpotifyAccountRegistered = this.spotify.isAccountRegistered();
-    if (!isSpotifyAccountRegistered) {
-      return { isSpotifyAccountRegistered };
-    }
-    const queue = await this.queue.get();
-    const currentPlay = (await this.currentPlay()) || null;
-    return {
-      isSpotifyAccountRegistered,
-      queue,
-      currentPlay,
-    };
+    return this.generateState();
   }
 
   @Post('register-player')
@@ -142,5 +135,22 @@ export class MusicController {
     if (!playback.registered) return;
     if (playback.currentPlayback.item?.type !== 'track') return;
     return this.mapTrackItemToMusic(playback.currentPlayback.item);
+  }
+
+  private async generateState(message?: string): Promise<CurrentMusic> {
+    const isSpotifyAccountRegistered = this.spotify.isAccountRegistered();
+    const engineStarted = this.queueEngine.isRunning;
+    if (!isSpotifyAccountRegistered) {
+      return { isSpotifyAccountRegistered, engineStarted, message };
+    }
+    const queue = await this.queue.get();
+    const currentPlay = (await this.currentPlay()) || null;
+    return {
+      isSpotifyAccountRegistered,
+      queue,
+      currentPlay,
+      engineStarted,
+      message,
+    };
   }
 }

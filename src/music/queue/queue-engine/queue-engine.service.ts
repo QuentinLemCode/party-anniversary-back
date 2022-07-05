@@ -8,6 +8,11 @@ import { VoteSettingsService } from '../../vote-settings/vote-settings.service';
 import { Queue } from '../queue.entity';
 import { QueueService } from '../queue.service';
 
+export interface StartingStatus {
+  started: boolean;
+  message?: string;
+}
+
 @Injectable()
 export class QueueEngineService {
   private _isRunning = false;
@@ -26,24 +31,43 @@ export class QueueEngineService {
     private readonly voteSettings: VoteSettingsService,
   ) {}
 
-  private readonly logger = new Logger('SpotifyQueue');
+  private readonly logger = new Logger('QueueEngine');
   private readonly SCHEDULER_NAME = 'music-status';
 
-  async start() {
+  private static readonly START_ENGINE_FAIL =
+    'No queue found or spotify account not registered : unable to start the engine';
+
+  async start(): Promise<StartingStatus> {
+    await this.refreshPlayingQueue();
     const queue = await this.queues.pop();
     if (!queue || !this.spotify.isAccountRegistered()) {
-      return;
+      const message = QueueEngineService.START_ENGINE_FAIL;
+      this.logger.warn(message);
+      return {
+        started: false,
+        message,
+      };
     }
     await this.spotify.play(queue.music.uri);
     await this.queues.setPlaying(queue);
     // we wait a bit for the music launch
     setTimeout(() => this.setTimeout(queue), 5000);
     this.isRunning = true;
+    this.logger.log('Engine started');
+    return {
+      started: true,
+    };
   }
 
   stop() {
     this.deleteCheckTimeout();
     this.isRunning = false;
+  }
+
+  async refreshPlayingQueue() {
+    const queue = await this.queues.getPlayingQueue();
+    if (!queue) return;
+    this.queues.setPlaying(queue);
   }
 
   async forward(queueOrId: Queue | string | number, user: User) {
