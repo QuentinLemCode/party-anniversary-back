@@ -19,6 +19,7 @@ export enum Status {
   PLAYING,
   FINISHED,
   CANCELLED,
+  BACKLOG,
 }
 
 @Entity()
