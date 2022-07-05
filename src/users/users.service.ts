@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomBytes } from 'crypto';
 import { Repository } from 'typeorm';
@@ -18,6 +22,19 @@ export class UsersService {
 
   findById(id: number) {
     return this.users.findOneBy({ id });
+  }
+
+  delete(id: number) {
+    return this.users.softRemove({ id });
+  }
+
+  async unlock(id: number) {
+    const user = await this.users.findOneBy({ id });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.locked = false;
+    await this.users.save(user);
   }
 
   async register(registerDTO: RegisterUserDTO, ip: string) {
