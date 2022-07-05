@@ -14,6 +14,7 @@ import { JwtGuard } from 'src/auth/jwt.guard';
 import { Roles } from '../auth/roles.decorator';
 import { UserRole } from '../users/user.entity';
 import { CurrentMusic, Music, SpotifyOAuthDTO } from './music.interface';
+import { QueueEngineService } from './queue/queue-engine/queue-engine.service';
 import { QueueService } from './queue/queue.service';
 import { SpotifyApiService } from './spotify/spotify-api/spotify-api.service';
 import { SpotifySearchService } from './spotify/spotify-search/spotify-search.service';
@@ -21,12 +22,18 @@ import {
   SearchResponse,
   TrackObjectFull,
 } from './spotify/types/spotify-interfaces';
+
+interface Control {
+  start: boolean;
+  logout: boolean;
+}
 @Controller('music')
 export class MusicController {
   constructor(
     private readonly spotify: SpotifyApiService,
     private readonly spotifySearch: SpotifySearchService,
     private readonly queue: QueueService,
+    private readonly queueEngine: QueueEngineService,
   ) {}
 
   @UseGuards(JwtGuard)
@@ -35,6 +42,20 @@ export class MusicController {
     if (!query) throw new BadRequestException('no query');
     const results = await this.spotifySearch.search(query);
     return this.mapResults(results);
+  }
+
+  @UseGuards(JwtGuard)
+  @Roles(UserRole.ADMIN)
+  @Post('control')
+  async control(@Body() control: Control) {
+    if (control.start) {
+      await this.queueEngine.start();
+    } else if (control.start === false) {
+      await this.queueEngine.stop();
+    }
+    if (control.logout) {
+      await this.spotify.unregisterPlayer();
+    }
   }
 
   @UseGuards(JwtGuard)

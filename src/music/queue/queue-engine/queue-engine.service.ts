@@ -29,7 +29,7 @@ export class QueueEngineService {
   private readonly logger = new Logger('SpotifyQueue');
   private readonly SCHEDULER_NAME = 'music-status';
 
-  async launch() {
+  async start() {
     const queue = await this.queues.pop();
     if (!queue || !this.spotify.isAccountRegistered()) {
       return;

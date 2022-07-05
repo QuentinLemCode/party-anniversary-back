@@ -55,6 +55,15 @@ export class SpotifyApiService implements OnModuleInit {
     );
   }
 
+  async unregisterPlayer() {
+    this.currentRegisteredAccount.access_token = '';
+    this.currentRegisteredAccount.expires_at = new Date().getTime() - 1;
+    this.currentRegisteredAccount.refresh_token = '';
+    this.currentRegisteredAccount.token_type = '';
+    this.currentRegisteredAccount.scope = '';
+    this.spotifyAccount.save(this.currentRegisteredAccount);
+  }
+
   async registerPlayer(code: string) {
     const form = {
       code: code,
