@@ -47,6 +47,7 @@ export class AuthService {
     }
     if (challenge && user.challenge === hashPassword(challenge, user.salt)) {
       this.users.resetLoginTry(user);
+      this.users.saveIp(user, ip);
       return user;
     }
     this.users.addLoginTry(user);

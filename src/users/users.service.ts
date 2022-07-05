@@ -53,6 +53,18 @@ export class UsersService {
     return this.users.save(user);
   }
 
+  async removeIPverification(user: User) {
+    user.noIPverification = true;
+    user.ip = null;
+    this.users.save(user);
+  }
+
+  async saveIp(user: User, ip: string) {
+    if (user.noIPverification) return;
+    user.ip = ip;
+    this.users.save(user);
+  }
+
   async addLoginTry(user: User) {
     user.loginTries += 1;
     if (user.loginTries >= 3) {
