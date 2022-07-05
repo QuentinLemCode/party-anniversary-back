@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from '../../users/users.service';
+import { QueueEngineService } from './queue-engine/queue-engine.service';
 import { QueueController } from './queue.controller';
 import { QueueService } from './queue.service';
 
@@ -22,6 +23,10 @@ describe('QueueController', () => {
           useValue: {
             findById: () => null,
           },
+        },
+        {
+          provide: QueueEngineService,
+          useValue: {},
         },
       ],
     }).compile();

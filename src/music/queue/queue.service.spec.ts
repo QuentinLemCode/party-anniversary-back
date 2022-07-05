@@ -80,15 +80,6 @@ describe('QueueService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
-    expect(spySpotifyApiService.isAccountRegistered).toHaveBeenCalled();
-  });
-
-  it('should reprogram timer if music is paused', async () => {
-    expect(spySpotifyApiService.addToQueue).toHaveBeenCalledWith(mockMusic.uri);
-    expect(jest.getTimerCount()).toBe(1);
-    jest.runAllTimers();
-    expect(spySpotifyApiService.getPlaybackState).toHaveBeenCalled();
-    expect(jest.getTimerCount()).toBe(0);
   });
 
   afterEach(() => {
