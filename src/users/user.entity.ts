@@ -1,7 +1,9 @@
 import {
   BeforeInsert,
+  BeforeSoftRemove,
   BeforeUpdate,
   Column,
+  DeleteDateColumn,
   Entity,
   Index,
   ManyToMany,
@@ -28,6 +30,18 @@ export class User {
     this.created_at = new Date();
   }
 
+  @BeforeSoftRemove()
+  updateStatus() {
+    this.ip = null;
+  }
+
+  @DeleteDateColumn({
+    precision: null,
+    type: 'timestamp',
+    default: () => null,
+  })
+  deleted_at: Date;
+
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -35,9 +49,9 @@ export class User {
   @Index({ unique: true })
   name: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   @Index({ unique: true })
-  ip: string;
+  ip: string | null;
 
   @Column({
     type: 'enum',
