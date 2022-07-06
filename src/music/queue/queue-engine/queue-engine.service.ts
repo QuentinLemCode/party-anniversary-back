@@ -87,6 +87,7 @@ export class QueueEngineService {
     if (!queue) {
       queue = await this.queues.pop();
       if (queue === null) {
+        this.logger.warn('No queue found, stopping engine');
         this.stop();
         return;
       }
@@ -127,11 +128,15 @@ export class QueueEngineService {
     await this.queues.setFinished(queue);
     const currentMusic = playState.currentPlayback;
     if (currentMusic.item?.uri !== queue.music.uri) {
+      this.logger.log(
+        'End of song : Current playing music is not the same as the one in the queue, stopping engine',
+      );
       return this.stop();
     }
     const nextQueue = await this.queues.pop();
     if (!nextQueue) {
       this.logger.log('End of song : Retrieve music from backlog');
+      return this.stop();
       // get backlog
       return;
     } else {
@@ -161,6 +166,9 @@ export class QueueEngineService {
 
     const currentMusic = playState.currentPlayback;
     if (currentMusic.item?.uri !== queue.music.uri) {
+      this.logger.log(
+        'Start of song : Current playing music is not the same as the one in the queue, stopping engine',
+      );
       return this.stop();
     }
     await this.queues.setPlaying(queue);
@@ -170,16 +178,16 @@ export class QueueEngineService {
     this.startTimeout(timeoutEndOfSong, this.SONG_END_SCHEDULER_NAME, () =>
       this.endOfSongEvent(queue),
     );
-    this.logger.log(`End of song : ${queue.music.toString()}`);
+    this.logger.log(`Start of song : ${queue.music.toString()}`);
   }
 
   private async getPlayState() {
-    if (!this.spotify.isAccountRegistered()) {
-      this.stop();
-      return null;
-    }
     const playState = await this.spotify.getPlaybackState();
     if (!playState.registered || !playState.currentPlayback.is_playing) {
+      const error = playState.registered
+        ? 'Music not playing'
+        : 'Spotify not registered';
+      this.logger.warn(error + ', stopping engine');
       this.stop();
       return null;
     }
