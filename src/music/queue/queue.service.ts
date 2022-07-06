@@ -72,7 +72,7 @@ export class QueueService {
   async vote(queueOrId: Queue | string | number, user: User) {
     const queue = await this.getQueue(queueOrId);
     if (queue.forward_vote_users?.find((u) => u.id === user.id)) {
-      throw new BadRequestException('You already voted for this music');
+      throw new BadRequestException({ cause: 'already-voted' });
     }
     queue.forward_vote_users = [...(queue.forward_vote_users ?? []), user];
     await this.queue.save(queue);
