@@ -8,12 +8,15 @@ export interface TokenWithCalculatedExpiration extends Token {
   expiryDate: Date;
 }
 
-export interface TokenPlayer {
+export interface TokenPlayer extends RefreshToken {
+  refresh_token: string;
+}
+
+export interface RefreshToken {
   access_token: string;
   token_type: string;
   scope: string;
   expires_in: number;
-  refresh_token: string;
 }
 
 export interface RegisteredPlayer extends TokenPlayer {

@@ -5,20 +5,21 @@ import {
   OnModuleInit,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import { SchedulerRegistry } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
+import type { AxiosResponse } from 'axios';
+import { setupCache } from 'axios-cache-adapter';
 import { env } from 'process';
 import { catchError, firstValueFrom, map, of, pipe, throwError } from 'rxjs';
 import { Repository } from 'typeorm';
 import { querystring } from '../../../utils/querystring';
 import { SpotifyAccount } from '../spotify-account.entity';
-import { TokenPlayer } from '../token';
+import { RefreshToken, TokenPlayer } from '../token';
 import {
   CurrentPlaybackResponse,
   SpotifyTrackCategory,
   SpotifyURI,
 } from '../types/spotify-interfaces';
-import type { AxiosResponse } from 'axios';
-import { setupCache } from 'axios-cache-adapter';
 
 export type PlaybackState =
   | {
@@ -49,6 +50,7 @@ export class SpotifyApiService implements OnModuleInit {
     private http: HttpService,
     @InjectRepository(SpotifyAccount)
     private spotifyAccount: Repository<SpotifyAccount>,
+    private readonly schedulerRegistry: SchedulerRegistry,
   ) {}
 
   private currentRegisteredAccount: SpotifyAccount;
@@ -57,12 +59,18 @@ export class SpotifyApiService implements OnModuleInit {
     maxAge: 10000,
   });
 
+  private static readonly INTERVAL_RENEW_TOKEN_TIME = 1000 * 1000; // 1000 seconds
+  private static readonly INTERVAL_RENEW_TOKEN_NAME = 'renew-token';
+
   private readonly formUrlContentTypeHeader = {
     'Content-Type': 'application/x-www-form-urlencoded',
   };
 
   async onModuleInit() {
     this.currentRegisteredAccount = await this.getAccount();
+    if (this.isAccountRegistered()) {
+      this.startTokenRenewInterval();
+    }
   }
 
   isAccountRegistered(): boolean {
@@ -79,6 +87,7 @@ export class SpotifyApiService implements OnModuleInit {
     this.currentRegisteredAccount.token_type = '';
     this.currentRegisteredAccount.scope = '';
     this.spotifyAccount.save(this.currentRegisteredAccount);
+    this.stopTokenRenewInterval();
   }
 
   async registerPlayer(code: string) {
@@ -89,20 +98,22 @@ export class SpotifyApiService implements OnModuleInit {
     };
 
     const response = await firstValueFrom(
-      this.http.post<TokenPlayer>(
-        'https://accounts.spotify.com/api/token',
-        querystring(form),
-        {
-          headers: {
-            Authorization:
-              'Basic ' +
-              Buffer.from(
-                env.SPOTIFY_CLIENT_ID + ':' + env.SPOTIFY_CLIENT_KEY,
-              ).toString('base64'),
-            ...this.formUrlContentTypeHeader,
+      this.http
+        .post<TokenPlayer>(
+          'https://accounts.spotify.com/api/token',
+          querystring(form),
+          {
+            headers: {
+              Authorization:
+                'Basic ' +
+                Buffer.from(
+                  env.SPOTIFY_CLIENT_ID + ':' + env.SPOTIFY_CLIENT_KEY,
+                ).toString('base64'),
+              ...this.formUrlContentTypeHeader,
+            },
           },
-        },
-      ),
+        )
+        .pipe(this.pipeResponse()),
     );
 
     const account = {
@@ -112,8 +123,7 @@ export class SpotifyApiService implements OnModuleInit {
     };
     await this.spotifyAccount.save(account);
     this.currentRegisteredAccount = account;
-
-    // TODO : prepare tasks for renewing token
+    this.startTokenRenewInterval();
   }
 
   async getPlaybackState(): Promise<PlaybackState> {
@@ -267,6 +277,74 @@ export class SpotifyApiService implements OnModuleInit {
     const message = [err?.message, err?.response?.data?.error?.message]
       .filter((a) => !!a)
       .join(' - ');
-    this.logger.error(message);
+    this.logger.error(message, err);
+  }
+
+  private async renewToken() {
+    this.logger.log('Renewing token...');
+    const form = {
+      refresh_token: this.currentRegisteredAccount.refresh_token,
+      grant_type: 'refresh_token',
+    };
+
+    const response = await firstValueFrom(
+      this.http
+        .post<RefreshToken>(
+          'https://accounts.spotify.com/api/token',
+          querystring(form),
+          {
+            headers: {
+              Authorization:
+                'Basic ' +
+                Buffer.from(
+                  env.SPOTIFY_CLIENT_ID + ':' + env.SPOTIFY_CLIENT_KEY,
+                ).toString('base64'),
+              ...this.formUrlContentTypeHeader,
+            },
+          },
+        )
+        .pipe(this.pipeResponse()),
+    );
+    if (response.status === 'error') {
+      return;
+    }
+
+    this.logger.log('Token renewed succecssfully ! Saving it to database ...');
+    const account = {
+      ...(await this.getAccount()),
+      ...response.data,
+      expires_at: Date.now() + (response.data.expires_in - 10) * 1000,
+    };
+    await this.spotifyAccount.save(account);
+    this.currentRegisteredAccount = account;
+  }
+
+  private startTokenRenewInterval() {
+    if (
+      this.schedulerRegistry.doesExist(
+        'interval',
+        SpotifyApiService.INTERVAL_RENEW_TOKEN_NAME,
+      )
+    ) {
+      return;
+    }
+    const callback = () => {
+      this.renewToken();
+    };
+
+    const interval = setInterval(
+      callback,
+      SpotifyApiService.INTERVAL_RENEW_TOKEN_TIME,
+    );
+    this.schedulerRegistry.addInterval(
+      SpotifyApiService.INTERVAL_RENEW_TOKEN_NAME,
+      interval,
+    );
+  }
+
+  private stopTokenRenewInterval() {
+    this.schedulerRegistry.deleteInterval(
+      SpotifyApiService.INTERVAL_RENEW_TOKEN_NAME,
+    );
   }
 }
