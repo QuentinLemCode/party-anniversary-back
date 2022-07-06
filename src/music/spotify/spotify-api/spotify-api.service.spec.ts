@@ -1,4 +1,5 @@
 import { HttpModule } from '@nestjs/axios';
+import { SchedulerRegistry } from '@nestjs/schedule';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { SpotifyAccount } from '../spotify-account.entity';
@@ -17,6 +18,7 @@ describe('SpotifyApiService', () => {
             findOne: () => null,
           },
         },
+        { provide: SchedulerRegistry, useValue: {} },
       ],
       imports: [HttpModule],
     }).compile();
