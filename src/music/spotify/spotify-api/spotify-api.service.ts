@@ -69,6 +69,7 @@ export class SpotifyApiService implements OnModuleInit {
   async onModuleInit() {
     this.currentRegisteredAccount = await this.getAccount();
     if (this.isAccountRegistered()) {
+      await this.renewToken();
       this.startTokenRenewInterval();
     }
   }
