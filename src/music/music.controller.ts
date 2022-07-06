@@ -8,7 +8,6 @@ import {
   ServiceUnavailableException,
   UseGuards,
 } from '@nestjs/common';
-import { AxiosError } from 'axios';
 import { randomUUID } from 'crypto';
 import { JwtGuard } from 'src/auth/jwt.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -102,7 +101,7 @@ export class MusicController {
     try {
       await this.spotify.registerPlayer(spotifyOAuth.code);
     } catch (error) {
-      if (error instanceof AxiosError && error.response?.status === 400) {
+      if (error?.response?.status === 400) {
         throw new BadRequestException({
           spotifyMessage: error.response.data.error,
           isSpotifyAccountRegistered: this.spotify.isAccountRegistered(),
