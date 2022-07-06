@@ -217,7 +217,7 @@ export class QueueEngineService {
     return (
       (currentMusic.item?.duration_ms ?? 0) -
       (currentMusic.progress_ms ?? 0) +
-      2000
+      5000
     );
   }
 
@@ -227,7 +227,7 @@ export class QueueEngineService {
     return (
       (currentMusic.item?.duration_ms ?? 0) -
       (currentMusic.progress_ms ?? 0) -
-      2000
+      5000
     );
   }
 }
