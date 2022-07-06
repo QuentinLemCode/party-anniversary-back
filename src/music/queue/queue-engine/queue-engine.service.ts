@@ -82,13 +82,13 @@ export class QueueEngineService {
   }
 
   async forward(queueOrId: Queue | string | number, user: User) {
+    if (user.role === UserRole.ADMIN) {
+      return this.next(await this.queues.getQueue(queueOrId));
+    }
     const queue = await this.queues.vote(queueOrId, user);
     const voteCount = queue.forward_vote_users.length;
-    if (
-      voteCount >= this.voteSettings.maxVotes ||
-      user.role === UserRole.ADMIN
-    ) {
-      await this.next(queue);
+    if (voteCount >= this.voteSettings.maxVotes) {
+      return this.next(queue);
     }
   }
 
@@ -101,9 +101,15 @@ export class QueueEngineService {
         return;
       }
     }
+    if (!queue.music) {
+      queue = await this.queues.getQueue(queue.id);
+    }
     this.deleteTimeouts();
-    await this.spotify.addToQueue(queue.music.uri);
-    await this.spotify.skipToNext();
+    const playingQueue = await this.queues.getPlayingQueue();
+    if (playingQueue) {
+      await this.queues.setFinished(playingQueue);
+    }
+    await this.spotify.play(queue.music.uri);
     await this.queues.setPlaying(queue);
     this.launchEngine(queue);
   }

@@ -70,15 +70,7 @@ export class QueueService {
   }
 
   async vote(queueOrId: Queue | string | number, user: User) {
-    let queue: Queue;
-    if (typeof queueOrId === 'string' || typeof queueOrId === 'number') {
-      [queue] = await this.queue.find({
-        where: { id: +queueOrId },
-        relations: ['forward_vote_users'],
-      });
-    } else {
-      queue = queueOrId;
-    }
+    const queue = await this.getQueue(queueOrId);
     if (queue.forward_vote_users?.find((u) => u.id === user.id)) {
       throw new BadRequestException('You already voted for this music');
     }
@@ -106,6 +98,22 @@ export class QueueService {
       where: { status: Raw("'0'") },
       relations: ['music'],
     });
+  }
+
+  async getQueue(queueOrId: Queue | number | string) {
+    let queue: Queue;
+    if (typeof queueOrId === 'string' || typeof queueOrId === 'number') {
+      [queue] = await this.queue.find({
+        where: { id: +queueOrId },
+        relations: ['forward_vote_users', 'music'],
+      });
+    } else {
+      queue = queueOrId;
+    }
+    if (!queue) {
+      throw new BadRequestException('Queue not found');
+    }
+    return queue;
   }
 
   public async getPlayingQueue(): Promise<Queue | null> {
