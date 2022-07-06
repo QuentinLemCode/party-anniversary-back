@@ -45,6 +45,20 @@ export class QueueController {
     return this.queue.delete(id);
   }
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Post('backlog')
+  pushToBacklog(@Body() music: Music, @Req() req: Request) {
+    return this.queue.pushBacklog(music, this.getUser(req).userId);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Get('backlog')
+  getBackLog() {
+    return this.queue.getBacklog();
+  }
+
   @UseGuards(AuthGuard('jwt'))
   @Post('/:id/forward')
   async forwardQueue(@Param('id') id: string, @Req() req: Request) {

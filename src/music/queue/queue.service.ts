@@ -23,11 +23,22 @@ export class QueueService {
     if (alreadyInQueue) {
       throw new BadRequestException({ cause: 'queue' });
     }
-    let queue = new Queue();
+    const queue = new Queue();
     queue.music = music;
     queue.userId = userId;
-    queue = await this.queue.save(queue);
-    return queue;
+    return this.queue.save(queue);
+  }
+
+  async pushBacklog(music: Music, userId: number) {
+    const queue = new Queue();
+    queue.music = music;
+    queue.userId = userId;
+    queue.status = Status.BACKLOG;
+    await this.queue.save(queue);
+  }
+
+  getBacklog() {
+    return this.getQueueForStatus(Status.BACKLOG);
   }
 
   findInPendingQueue(uri: string) {
@@ -40,6 +51,11 @@ export class QueueService {
   }
 
   get() {
+    return this.getQueueForStatus(Status.PENDING, Status.PLAYING);
+  }
+
+  private async getQueueForStatus(...status: Status[]) {
+    const whereStatus = status.map((s) => '' + s);
     return this.queue
       .createQueryBuilder('queue')
       .leftJoinAndSelect('queue.music', 'music')
@@ -49,8 +65,7 @@ export class QueueService {
         'queue.forward_vote_users',
       )
       .select(['queue.status', 'music', 'user.name', 'queue.id'])
-      .where('queue.status = "0"')
-      .orWhere('queue.status = "1"')
+      .where('queue.status IN (:status)', { status: whereStatus })
       .orderBy('queue.status', 'DESC')
       .addOrderBy('queue.updated_at', 'ASC')
       .getMany();
