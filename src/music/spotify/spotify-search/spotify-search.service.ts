@@ -68,9 +68,6 @@ export class SpotifySearchService implements OnModuleInit {
 
   private get key(): Promise<string> {
     if (this.currentToken?.expiryDate >= new Date()) {
-      this.logger.log(
-        'Token valid : ' + this.currentToken?.expiryDate + ' >= ' + new Date(),
-      );
       return Promise.resolve(this.currentToken.access_token);
     }
     return this.loadToken().then((token) => token.access_token);
