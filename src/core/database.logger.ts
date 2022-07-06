@@ -5,7 +5,8 @@ class DatabaseLogger implements TypeOrmLogger {
   private readonly logger = new NestLogger('SQL');
 
   logQuery(query: string, parameters?: unknown[]) {
-    this.logger.log(
+    if (!process.env.DATABASE_QUERY_DEBUG) return;
+    this.logger.debug(
       `${query} -- Parameters: ${this.stringifyParameters(parameters)}`,
     );
   }
