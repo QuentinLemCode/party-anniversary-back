@@ -138,7 +138,6 @@ export class QueueEngineService {
       this.logger.log('End of song : Retrieve music from backlog');
       return this.stop();
       // get backlog
-      return;
     } else {
       await this.spotify.addToQueue(nextQueue.music.uri);
       this.logger.log(
@@ -152,7 +151,7 @@ export class QueueEngineService {
     this.startTimeout(
       timeoutBeginNextSong,
       this.SONG_START_SCHEDULER_NAME,
-      () => this.startOfSongEvent(queue),
+      () => this.startOfSongEvent(nextQueue),
     );
   }
 
@@ -168,6 +167,7 @@ export class QueueEngineService {
     if (currentMusic.item?.uri !== queue.music.uri) {
       this.logger.log(
         'Start of song : Current playing music is not the same as the one in the queue, stopping engine',
+        'Expecting ' + queue.music.toString(),
       );
       return this.stop();
     }
