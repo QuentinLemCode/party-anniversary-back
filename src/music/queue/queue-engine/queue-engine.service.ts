@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { GoneException, Injectable, Logger } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { setTimeout } from 'timers';
 import { User, UserRole } from '../../../users/user.entity';
@@ -82,6 +82,9 @@ export class QueueEngineService {
   }
 
   async forward(queueOrId: Queue | string | number, user: User) {
+    if (!this.isRunning) {
+      throw new GoneException({ cause: 'engine-not-running' });
+    }
     if (user.role === UserRole.ADMIN) {
       return this.next(await this.queues.getQueue(queueOrId));
     }
