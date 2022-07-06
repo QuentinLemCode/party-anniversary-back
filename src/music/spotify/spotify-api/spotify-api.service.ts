@@ -18,6 +18,7 @@ import {
   SpotifyURI,
 } from '../types/spotify-interfaces';
 import type { AxiosResponse } from 'axios';
+import { setupCache } from 'axios-cache-adapter';
 
 export type PlaybackState =
   | {
@@ -52,6 +53,9 @@ export class SpotifyApiService implements OnModuleInit {
 
   private currentRegisteredAccount: SpotifyAccount;
   private readonly logger = new Logger('SpotifyAPI');
+  private readonly cache = setupCache({
+    maxAge: 10000,
+  });
 
   private readonly formUrlContentTypeHeader = {
     'Content-Type': 'application/x-www-form-urlencoded',
@@ -124,6 +128,8 @@ export class SpotifyApiService implements OnModuleInit {
           headers: {
             ...this.getAuthorizationHeaderForCurrentPlayer(),
           },
+          // I don't want a 418
+          adapter: this.cache.adapter,
         })
         .pipe(
           catchError((err) => {
@@ -211,7 +217,7 @@ export class SpotifyApiService implements OnModuleInit {
 
   private pipeResponse(errorCase?: (status: number) => APIResult | void) {
     return pipe(
-      map((response: AxiosResponse<any, any>) => {
+      map((response: AxiosResponse) => {
         return this.success(response.data);
       }),
       catchError((err) => {

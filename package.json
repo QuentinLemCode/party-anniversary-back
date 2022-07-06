@@ -33,6 +33,7 @@
     "@nestjs/schedule": "^2.0.1",
     "@nestjs/typeorm": "^8.1.2",
     "@supercharge/request-ip": "^1.2.0",
+    "axios-cache-adapter": "^2.7.3",
     "mysql2": "^2.3.3",
     "passport": "^0.5.3",
     "passport-jwt": "^4.0.0",
