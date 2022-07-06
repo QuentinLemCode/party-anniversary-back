@@ -153,6 +153,7 @@ export class QueueEngineService {
       this.SONG_START_SCHEDULER_NAME,
       () => this.startOfSongEvent(nextQueue),
     );
+    this.stopTimeout(this.SONG_END_SCHEDULER_NAME);
   }
 
   // start of song
@@ -179,6 +180,7 @@ export class QueueEngineService {
       this.endOfSongEvent(queue),
     );
     this.logger.log(`Start of song : ${queue.music.toString()}`);
+    this.stopTimeout(this.SONG_START_SCHEDULER_NAME);
   }
 
   private async getPlayState() {
@@ -206,18 +208,13 @@ export class QueueEngineService {
   }
 
   private deleteTimeouts() {
-    if (
-      this.schedulerRegistry.doesExist(
-        'timeout',
-        this.SONG_START_SCHEDULER_NAME,
-      )
-    ) {
-      this.schedulerRegistry.deleteTimeout(this.SONG_START_SCHEDULER_NAME);
-    }
-    if (
-      this.schedulerRegistry.doesExist('timeout', this.SONG_END_SCHEDULER_NAME)
-    ) {
-      this.schedulerRegistry.deleteTimeout(this.SONG_END_SCHEDULER_NAME);
+    this.stopTimeout(this.SONG_END_SCHEDULER_NAME);
+    this.stopTimeout(this.SONG_START_SCHEDULER_NAME);
+  }
+
+  private stopTimeout(name: string) {
+    if (this.schedulerRegistry.doesExist('timeout', name)) {
+      this.schedulerRegistry.deleteTimeout(name);
     }
   }
 
