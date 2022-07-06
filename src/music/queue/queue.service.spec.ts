@@ -2,7 +2,10 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Music } from '../music.entity';
-import { SpotifyApiService } from '../spotify/spotify-api/spotify-api.service';
+import {
+  APIResult,
+  SpotifyApiService,
+} from '../spotify/spotify-api/spotify-api.service';
 import {
   CurrentPlaybackResponse,
   TrackObjectFull,
@@ -66,8 +69,10 @@ describe('QueueService', () => {
         },
       ],
     }).compile();
-    spySpotifyApiService.addToQueue = jest.fn(async () => {
-      return;
+    spySpotifyApiService.addToQueue = jest.fn(async (): Promise<APIResult> => {
+      return {
+        status: 'success',
+      };
     });
     spySpotifyApiService.getPlaybackState = jest.fn(() => {
       return Promise.resolve({

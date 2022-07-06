@@ -38,6 +38,9 @@ export class QueueEngineService {
   private static readonly START_ENGINE_FAIL =
     'No queue found or spotify account not registered : unable to start the engine';
 
+  private static readonly FAIL_PLAY = 'Unable to play song';
+  private static readonly FAIL_NO_DEVICES = 'No device found';
+
   async start(): Promise<StartingStatus> {
     await this.refreshPlayingQueue();
     const queue = await this.queues.pop();
@@ -50,7 +53,13 @@ export class QueueEngineService {
       };
     }
     this.isRunning = true;
-    await this.spotify.play(queue.music.uri);
+    const response = await this.spotify.play(queue.music.uri);
+    if (response.status === 'error') {
+      if (response.cause === 'no-device') {
+        return { started: false, message: QueueEngineService.FAIL_NO_DEVICES };
+      }
+      return { started: false, message: QueueEngineService.FAIL_PLAY };
+    }
     await this.queues.setPlaying(queue);
     // we wait a bit for the music launch
     setTimeout(() => {

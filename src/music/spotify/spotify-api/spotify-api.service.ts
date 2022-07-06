@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { env } from 'process';
-import { catchError, firstValueFrom, map, throwError } from 'rxjs';
+import { catchError, firstValueFrom, map, of, pipe, throwError } from 'rxjs';
 import { Repository } from 'typeorm';
 import { querystring } from '../../../utils/querystring';
 import { SpotifyAccount } from '../spotify-account.entity';
@@ -17,6 +17,7 @@ import {
   SpotifyTrackCategory,
   SpotifyURI,
 } from '../types/spotify-interfaces';
+import type { AxiosResponse } from 'axios';
 
 export type PlaybackState =
   | {
@@ -26,6 +27,20 @@ export type PlaybackState =
   | {
       registered: false;
     };
+
+export type APIErrorTypes =
+  | 'invalid_token'
+  | 'invalid_request'
+  | 'invalid_scope'
+  | 'no-device'
+  | 'unregistered'
+  | 'unknown';
+
+export type APIResult<T = void> = {
+  status: 'success' | 'error';
+  cause?: APIErrorTypes;
+  data?: T extends any ? T : never;
+};
 
 @Injectable()
 export class SpotifyApiService implements OnModuleInit {
@@ -37,8 +52,6 @@ export class SpotifyApiService implements OnModuleInit {
 
   private currentRegisteredAccount: SpotifyAccount;
   private readonly logger = new Logger('SpotifyAPI');
-
-  // TODO error check on each request
 
   private readonly formUrlContentTypeHeader = {
     'Content-Type': 'application/x-www-form-urlencoded',
@@ -129,7 +142,7 @@ export class SpotifyApiService implements OnModuleInit {
 
   async skipToNext() {
     if (!this.isAccountRegistered) {
-      return;
+      return this.error('unregistered');
     }
     return firstValueFrom(
       this.http
@@ -140,18 +153,13 @@ export class SpotifyApiService implements OnModuleInit {
             headers: this.getAuthorizationHeaderForCurrentPlayer(),
           },
         )
-        .pipe(
-          catchError((err) => {
-            this.logError(err);
-            return throwError(() => err);
-          }),
-        ),
+        .pipe(this.pipeResponse()),
     );
   }
 
-  async addToQueue(uri: SpotifyURI<SpotifyTrackCategory>): Promise<void> {
+  async addToQueue(uri: SpotifyURI<SpotifyTrackCategory>): Promise<APIResult> {
     if (!this.isAccountRegistered) {
-      return;
+      return this.error('unregistered');
     }
     return firstValueFrom(
       this.http
@@ -165,20 +173,13 @@ export class SpotifyApiService implements OnModuleInit {
             },
           },
         )
-        .pipe(
-          catchError((err) => {
-            this.logError(err);
-            return throwError(() => err);
-          }),
-        ),
-    ).then(() => {
-      return;
-    });
+        .pipe(this.pipeResponse()),
+    );
   }
 
-  async play(uri: SpotifyURI<SpotifyTrackCategory>) {
+  async play(uri: SpotifyURI<SpotifyTrackCategory>): Promise<APIResult> {
     if (!this.isAccountRegistered) {
-      return;
+      return this.error('unregistered');
     }
     return firstValueFrom(
       this.http
@@ -192,9 +193,10 @@ export class SpotifyApiService implements OnModuleInit {
           },
         )
         .pipe(
-          catchError((err) => {
-            this.logError(err);
-            return throwError(() => err);
+          this.pipeResponse((status) => {
+            if (status === 404) {
+              return this.error('no-device');
+            }
           }),
         ),
     );
@@ -205,6 +207,39 @@ export class SpotifyApiService implements OnModuleInit {
       throw new ServiceUnavailableException('Redirect host not set on server');
     }
     return process.env.REDIRECT_HOST + '/admin/spotify-device';
+  }
+
+  private pipeResponse(errorCase?: (status: number) => APIResult | void) {
+    return pipe(
+      map((response: AxiosResponse<any, any>) => {
+        return this.success(response.data);
+      }),
+      catchError((err) => {
+        this.logError(err);
+        if (errorCase) {
+          const error = errorCase(err.status);
+          if (error) return of(error);
+        }
+        return of(this.error('unknown'));
+      }),
+    );
+  }
+
+  private success<T = void>(data?: T): APIResult<T> {
+    if (!data) {
+      return { status: 'success' };
+    }
+    return {
+      status: 'success',
+      data,
+    };
+  }
+
+  private error(cause: APIErrorTypes): APIResult<void> {
+    return {
+      status: 'error',
+      cause,
+    };
   }
 
   private async getAccount(): Promise<SpotifyAccount> {
