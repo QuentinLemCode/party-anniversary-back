@@ -94,7 +94,7 @@ export class SpotifySearchService implements OnModuleInit {
       params: {
         q: query,
         type: 'track,artist',
-        limit: 20,
+        limit: 10,
         market: 'FR',
       },
       headers: {
