@@ -199,7 +199,7 @@ export class QueueEngineService {
   }
 
   private async getPlayState() {
-    const playState = await this.spotify.getPlaybackState();
+    const playState = await this.spotify.getPlaybackState(true);
     if (!playState.registered || !playState.currentPlayback.is_playing) {
       const error = playState.registered
         ? 'Music not playing'

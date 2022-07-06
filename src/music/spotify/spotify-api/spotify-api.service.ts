@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import type { AxiosResponse } from 'axios';
+import type { AxiosResponse, AxiosRequestConfig } from 'axios';
 import { setupCache } from 'axios-cache-adapter';
 import { env } from 'process';
 import { catchError, firstValueFrom, map, of, pipe, throwError } from 'rxjs';
@@ -126,21 +126,30 @@ export class SpotifyApiService implements OnModuleInit {
     this.startTokenRenewInterval();
   }
 
-  async getPlaybackState(): Promise<PlaybackState> {
+  async getPlaybackState(noCache = false): Promise<PlaybackState> {
     if (!this.isAccountRegistered) {
       return {
         registered: false,
       };
     }
+
+    const options: AxiosRequestConfig = {
+      headers: {
+        ...this.getAuthorizationHeaderForCurrentPlayer(),
+      },
+    };
+
+    if (!noCache) {
+      // I don't want a 418
+      options.adapter = this.cache.adapter;
+    }
+
     return firstValueFrom(
       this.http
-        .get<CurrentPlaybackResponse>('https://api.spotify.com/v1/me/player', {
-          headers: {
-            ...this.getAuthorizationHeaderForCurrentPlayer(),
-          },
-          // I don't want a 418
-          adapter: this.cache.adapter,
-        })
+        .get<CurrentPlaybackResponse>(
+          'https://api.spotify.com/v1/me/player',
+          options,
+        )
         .pipe(
           catchError((err) => {
             this.logError(err);
