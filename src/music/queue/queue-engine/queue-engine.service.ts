@@ -203,6 +203,7 @@ export class QueueEngineService {
     name: string,
     func: (queue: Queue) => void,
   ) {
+    if (this.schedulerRegistry.doesExist('timeout', name)) return;
     const timeoutFunction = setTimeout(func, timeout);
     this.schedulerRegistry.addTimeout(name, timeoutFunction);
   }
