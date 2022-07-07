@@ -10,6 +10,7 @@ import {
   CurrentPlaybackResponse,
   TrackObjectFull,
 } from '../spotify/types/spotify-interfaces';
+import { Backlog } from './backlog.entity';
 import { Queue, Status } from './queue.entity';
 import { QueueService } from './queue.service';
 
@@ -61,6 +62,12 @@ describe('QueueService', () => {
                 return [mockQueue];
               }
             },
+          },
+        },
+        {
+          provide: getRepositoryToken(Backlog),
+          useValue: {
+            createQueryBuilder: () => ({}),
           },
         },
         {
