@@ -4,7 +4,7 @@ import { setTimeout } from 'timers';
 import { User, UserRole } from '../../../users/user.entity';
 import { SpotifyApiService } from '../../spotify/spotify-api/spotify-api.service';
 import { CurrentPlaybackResponse } from '../../spotify/types/spotify-interfaces';
-import { VoteSettingsService } from '../../vote-settings/vote-settings.service';
+import { SettingsService } from '../../../core/settings/settings.service';
 import { Queue } from '../queue.entity';
 import { QueueService } from '../queue.service';
 
@@ -28,7 +28,7 @@ export class QueueEngineService {
     private readonly spotify: SpotifyApiService,
     private readonly queues: QueueService,
     private readonly schedulerRegistry: SchedulerRegistry,
-    private readonly voteSettings: VoteSettingsService,
+    private readonly settings: SettingsService,
   ) {}
 
   private readonly logger = new Logger('QueueEngine');
@@ -90,7 +90,7 @@ export class QueueEngineService {
     }
     const queue = await this.queues.vote(queueOrId, user);
     const voteCount = queue.forward_vote_users.length;
-    if (voteCount >= this.voteSettings.maxVotes) {
+    if (voteCount >= this.settings.maxVotes) {
       return this.next(queue);
     }
   }

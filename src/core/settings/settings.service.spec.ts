@@ -1,17 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { VoteSettings } from './vote-settings.entity';
-import { VoteSettingsService } from './vote-settings.service';
+import { Settings } from './settings.entity';
+import { SettingsService } from './settings.service';
 
 describe('VoteSettingsService', () => {
-  let service: VoteSettingsService;
+  let service: SettingsService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        VoteSettingsService,
+        SettingsService,
         {
-          provide: getRepositoryToken(VoteSettings),
+          provide: getRepositoryToken(Settings),
           useValue: {
             findOneBy: () => Promise.resolve({ id: 1, maxVotes: 3 }),
           },
@@ -19,7 +19,7 @@ describe('VoteSettingsService', () => {
       ],
     }).compile();
 
-    service = module.get<VoteSettingsService>(VoteSettingsService);
+    service = module.get<SettingsService>(SettingsService);
   });
 
   it('should be defined', () => {

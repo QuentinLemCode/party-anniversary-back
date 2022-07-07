@@ -8,6 +8,9 @@ import { env } from 'process';
 import { jwtConstants } from './core.constant';
 import DatabaseLogger from './database.logger';
 import { UsersModule } from '../users/users.module';
+import { SettingsService } from './settings/settings.service';
+import { SettingsController } from './settings/settings.controller';
+import { Settings } from './settings/settings.entity';
 
 @Global()
 @Module({
@@ -29,9 +32,12 @@ import { UsersModule } from '../users/users.module';
       synchronize: true,
       logger: new DatabaseLogger(),
     }),
+    TypeOrmModule.forFeature([Settings]),
     ScheduleModule.forRoot(),
     UsersModule,
   ],
+  providers: [SettingsService],
+  controllers: [SettingsController],
   exports: [
     JwtModule,
     HttpModule,
@@ -39,6 +45,7 @@ import { UsersModule } from '../users/users.module';
     TypeOrmModule,
     ScheduleModule,
     UsersModule,
+    SettingsService,
   ],
 })
 export class CoreModule {}

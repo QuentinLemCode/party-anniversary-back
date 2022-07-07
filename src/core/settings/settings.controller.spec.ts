@@ -1,16 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { VoteSettingsController } from './vote-settings.controller';
-import { VoteSettingsService } from './vote-settings.service';
+import { SettingsController } from './settings.controller';
+import { SettingsService } from './settings.service';
 
-describe('VoteSettingsController', () => {
-  let controller: VoteSettingsController;
+describe('SettingsController', () => {
+  let controller: SettingsController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [VoteSettingsController],
+      controllers: [SettingsController],
       providers: [
         {
-          provide: VoteSettingsService,
+          provide: SettingsService,
           useValue: {
             maxVotes: { id: 1, maxVotes: 3 },
             setMaxVotes: () => null,
@@ -19,7 +19,7 @@ describe('VoteSettingsController', () => {
       ],
     }).compile();
 
-    controller = module.get<VoteSettingsController>(VoteSettingsController);
+    controller = module.get<SettingsController>(SettingsController);
   });
 
   it('should be defined', () => {

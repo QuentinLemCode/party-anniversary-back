@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity()
-export class VoteSettings {
+export class Settings {
   @PrimaryColumn()
   id: number;
 
