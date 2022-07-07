@@ -3,20 +3,31 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Raw, Repository } from 'typeorm';
 import { User } from '../../users/user.entity';
 import { Music } from '../music.entity';
+import { Backlog } from './backlog.entity';
 import { Queue, Status } from './queue.entity';
 
 @Injectable()
-export class QueueService {
+export class QueueService implements OnModuleInit {
   constructor(
     @InjectRepository(Queue) private readonly queue: Repository<Queue>,
+    @InjectRepository(Backlog) private readonly backlog: Repository<Backlog>,
   ) {}
 
+  async onModuleInit() {
+    this.nextInBacklog = await this.nominateFromBacklog();
+  }
+
   private readonly logger = new Logger('Queue');
+
+  private nextInBacklog: Backlog | null;
+
+  // queue basic functions
 
   async push(music: Music, userId: number) {
     const alreadyInQueue = await this.findInPendingQueue(music.uri);
@@ -29,53 +40,50 @@ export class QueueService {
     return this.queue.save(queue);
   }
 
-  async pushBacklog(music: Music, userId: number) {
-    const queue = new Queue();
-    queue.music = music;
-    queue.userId = userId;
-    queue.status = Status.BACKLOG;
-    await this.queue.save(queue);
+  async pushBacklog(music: Music) {
+    const alreadyInBacklog = await this.findInBacklog(music.uri);
+    if (alreadyInBacklog) {
+      throw new BadRequestException({ cause: 'backlog' });
+    }
+    const backlog = new Backlog();
+    backlog.music = music;
+    await this.backlog.save(backlog);
   }
 
-  getBacklog() {
-    return this.getQueueForStatus(Status.BACKLOG);
+  async pop() {
+    const queue = await this.getPendingQueue(1);
+    if (queue.length === 0) {
+      return null;
+    }
+    const [first] = queue;
+    first.status = Status.PLAYING;
+    return this.queue.save(first);
   }
 
-  findInPendingQueue(uri: string) {
-    return this.queue
-      .createQueryBuilder('queue')
-      .leftJoinAndSelect('queue.music', 'music')
-      .where('music.uri = :uri', { uri })
-      .andWhere('queue.status IN (:status)', { status: ['0', '1'] })
-      .getOne();
+  async popBacklog() {
+    const backlog = await this.getBacklog();
+    if (!backlog) {
+      return null;
+    }
+    backlog.play_count += 1;
+    await this.backlog.save(backlog);
+    this.nextInBacklog = null;
+    return backlog;
   }
 
   get() {
     return this.getQueueForStatus(Status.PENDING, Status.PLAYING);
   }
 
-  countQueuedItemForUser(userId: number) {
-    return this.queue.count({
-      where: { userId, status: Raw("'0'") },
-    });
+  async getBacklog() {
+    if (this.nextInBacklog) {
+      return this.nextInBacklog;
+    }
+    this.nextInBacklog = await this.nominateFromBacklog();
+    return this.nextInBacklog;
   }
 
-  private async getQueueForStatus(...status: Status[]) {
-    const whereStatus = status.map((s) => '' + s);
-    return this.queue
-      .createQueryBuilder('queue')
-      .leftJoinAndSelect('queue.music', 'music')
-      .leftJoinAndSelect('queue.user', 'user')
-      .loadRelationCountAndMap(
-        'queue.forward_votes',
-        'queue.forward_vote_users',
-      )
-      .select(['queue.status', 'music', 'user.name', 'queue.id'])
-      .where('queue.status IN (:status)', { status: whereStatus })
-      .orderBy('queue.status', 'DESC')
-      .addOrderBy('queue.updated_at', 'ASC')
-      .getMany();
-  }
+  // features
 
   async delete(queueOrId: Queue | string | number) {
     if (typeof queueOrId === 'string' || typeof queueOrId === 'number') {
@@ -98,27 +106,6 @@ export class QueueService {
     queue.forward_vote_users = [...(queue.forward_vote_users ?? []), user];
     await this.queue.save(queue);
     return queue;
-  }
-
-  async pop() {
-    const queue = await this.getPendingQueue(1);
-    if (queue.length === 0) {
-      return null;
-    }
-    const [first] = queue;
-    first.status = Status.PLAYING;
-    return this.queue.save(first);
-  }
-
-  private getPendingQueue(take = 50) {
-    return this.queue.find({
-      order: {
-        created_at: 'ASC',
-      },
-      take,
-      where: { status: Raw("'0'") },
-      relations: ['music'],
-    });
   }
 
   async getQueue(queueOrId: Queue | number | string) {
@@ -148,10 +135,13 @@ export class QueueService {
     return queue || null;
   }
 
-  private async isQueueEmpty() {
-    const queue = await this.getPendingQueue(1);
-    return queue.length === 0;
+  countQueuedItemForUser(userId: number) {
+    return this.queue.count({
+      where: { userId, status: Raw("'0'") },
+    });
   }
+
+  // state management
 
   public async setPlaying(queue: Queue) {
     queue.status = Status.PLAYING;
@@ -161,5 +151,70 @@ export class QueueService {
   public async setFinished(queue: Queue) {
     queue.status = Status.FINISHED;
     await this.queue.save(queue);
+  }
+
+  // internal functions
+
+  private findInPendingQueue(uri: string) {
+    return this.queue
+      .createQueryBuilder('queue')
+      .leftJoinAndSelect('queue.music', 'music')
+      .where('music.uri = :uri', { uri })
+      .andWhere('queue.status IN (:status)', { status: ['0', '1'] })
+      .getOne();
+  }
+
+  private findInBacklog(uri: string) {
+    return this.backlog
+      .createQueryBuilder('backlog')
+      .leftJoinAndSelect('backlog.music', 'music')
+      .where('music.uri = :uri', { uri })
+      .getOne();
+  }
+
+  private async nominateFromBacklog() {
+    const minimumPlayCount: { min: number | null } = (await this.backlog
+      .createQueryBuilder('backlog')
+      .select('MIN(backlog.play_count)', 'min')
+      .getRawOne()) ?? { min: null };
+    if (minimumPlayCount.min === null) {
+      return null;
+    }
+    return this.backlog
+      .createQueryBuilder('backlog')
+      .select('backlog.*')
+      .andWhere('backlog.play_count = :playCount', {
+        playCount: minimumPlayCount.min,
+      })
+      .orderBy('RANDOM()')
+      .getOne();
+  }
+
+  private getPendingQueue(take = 50) {
+    return this.queue.find({
+      order: {
+        created_at: 'ASC',
+      },
+      take,
+      where: { status: Raw("'0'") },
+      relations: ['music'],
+    });
+  }
+
+  private async getQueueForStatus(...status: Status[]) {
+    const whereStatus = status.map((s) => '' + s);
+    return this.queue
+      .createQueryBuilder('queue')
+      .leftJoinAndSelect('queue.music', 'music')
+      .leftJoinAndSelect('queue.user', 'user')
+      .loadRelationCountAndMap(
+        'queue.forward_votes',
+        'queue.forward_vote_users',
+      )
+      .select(['queue.status', 'music', 'user.name', 'queue.id'])
+      .where('queue.status IN (:status)', { status: whereStatus })
+      .orderBy('queue.status', 'DESC')
+      .addOrderBy('queue.updated_at', 'ASC')
+      .getMany();
   }
 }

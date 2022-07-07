@@ -65,12 +65,8 @@ export class QueueController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(UserRole.ADMIN)
   @Post('backlog')
-  pushToBacklog(@Body() music: Music, @Req() req: Request) {
-    const user = this.getUser(req);
-    if (!user) {
-      throw new BadRequestException('User not found in request');
-    }
-    return this.queue.pushBacklog(music, user.userId);
+  pushToBacklog(@Body() music: Music) {
+    return this.queue.pushBacklog(music);
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
