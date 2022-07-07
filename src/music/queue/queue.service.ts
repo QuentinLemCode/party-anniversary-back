@@ -54,6 +54,12 @@ export class QueueService {
     return this.getQueueForStatus(Status.PENDING, Status.PLAYING);
   }
 
+  countQueuedItemForUser(userId: number) {
+    return this.queue.count({
+      where: { userId, status: Raw("'0'") },
+    });
+  }
+
   private async getQueueForStatus(...status: Status[]) {
     const whereStatus = status.map((s) => '' + s);
     return this.queue

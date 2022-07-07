@@ -28,4 +28,13 @@ export class SettingsService implements OnModuleInit {
     this.setting.maxVotes = value;
     await this.settings.save(this.setting);
   }
+
+  get maxQueuableSongPerUser() {
+    return this.setting.maxQueuableSongPerUser;
+  }
+
+  async setMaxQueuableSongPerUser(value: number) {
+    this.setting.maxQueuableSongPerUser = value;
+    await this.settings.save(this.setting);
+  }
 }

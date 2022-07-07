@@ -7,6 +7,7 @@ import { SettingsService } from './settings.service';
 
 export interface SettingsQuery {
   maxVotes: number;
+  maxQueuableSongPerUser: number;
 }
 
 @Controller('settings')
@@ -16,19 +17,21 @@ export class SettingsController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(UserRole.ADMIN)
   @Put()
-  async setVoteSettings(
+  async setSettings(
     @Body() voteSettings: SettingsQuery,
   ): Promise<SettingsQuery> {
     await this.settings.setMaxVotes(voteSettings.maxVotes);
     return {
       maxVotes: this.settings.maxVotes,
+      maxQueuableSongPerUser: this.settings.maxQueuableSongPerUser,
     };
   }
 
   @Get()
-  getVoteSettings(): SettingsQuery {
+  getSettings(): SettingsQuery {
     return {
       maxVotes: this.settings.maxVotes,
+      maxQueuableSongPerUser: this.settings.maxQueuableSongPerUser,
     };
   }
 }

@@ -22,6 +22,7 @@ declare namespace Express {
     user?: {
       userId: number;
       name: string;
+      role: UserRole;
     };
   }
 }

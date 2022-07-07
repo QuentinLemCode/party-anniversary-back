@@ -13,6 +13,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { Roles } from '../../auth/roles.decorator';
 import { RolesGuard } from '../../auth/roles.guard';
+import { SettingsService } from '../../core/settings/settings.service';
 import { UserRole } from '../../users/user.entity';
 import { UsersService } from '../../users/users.service';
 import { Music } from '../music.entity';
@@ -25,6 +26,7 @@ export class QueueController {
     private readonly queue: QueueService,
     private readonly users: UsersService,
     private readonly queueEngine: QueueEngineService,
+    private readonly settings: SettingsService,
   ) {}
 
   @Get()
@@ -34,10 +36,21 @@ export class QueueController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post()
-  pushToQueue(@Body() music: Music, @Req() req: Request) {
+  async pushToQueue(@Body() music: Music, @Req() req: Request) {
     const user = this.getUser(req);
     if (!user) {
       throw new BadRequestException('User not found in request');
+    }
+    if (user.role !== UserRole.ADMIN) {
+      if (
+        (await this.queue.countQueuedItemForUser(user.userId)) >=
+        this.settings.maxQueuableSongPerUser
+      ) {
+        throw new BadRequestException({
+          cause: 'queue-limit',
+          limit: this.settings.maxQueuableSongPerUser,
+        });
+      }
     }
     return this.queue.push(music, user.userId);
   }

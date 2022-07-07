@@ -7,4 +7,7 @@ export class Settings {
 
   @Column({ default: 3 })
   maxVotes: number;
+
+  @Column({ default: 5 })
+  maxQueuableSongPerUser: number;
 }
