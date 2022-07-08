@@ -12,8 +12,11 @@ declare namespace NodeJS {
     DATABASE_PASSWORD?: string;
     DATABASE_NAME?: string;
     NODE_ENV: 'production' | 'developement' | 'build' | 'test';
-    JWT_SECRET?: string;
     DEFAULT_ADMIN_PASSWORD?: string;
+    JWT_SECRET?: string;
+    JWT_EXPIRATION?: string;
+    JWT_REFRESH_SECRET?: string;
+    JWT_REFRESH_EXPIRATION?: string;
   }
 }
 

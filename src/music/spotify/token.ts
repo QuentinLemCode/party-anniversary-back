@@ -8,17 +8,17 @@ export interface TokenWithCalculatedExpiration extends Token {
   expiryDate: Date;
 }
 
-export interface TokenPlayer extends RefreshToken {
+export interface SpotifyToken extends SpotifyRefreshToken {
   refresh_token: string;
 }
 
-export interface RefreshToken {
+export interface SpotifyRefreshToken {
   access_token: string;
   token_type: string;
   scope: string;
   expires_in: number;
 }
 
-export interface RegisteredPlayer extends TokenPlayer {
+export interface RegisteredPlayer extends SpotifyToken {
   expires_at: number;
 }

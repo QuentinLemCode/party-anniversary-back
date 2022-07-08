@@ -14,7 +14,7 @@ import { catchError, firstValueFrom, map, of, pipe, throwError } from 'rxjs';
 import { Repository } from 'typeorm';
 import { querystring } from '../../../utils/querystring';
 import { SpotifyAccount } from '../spotify-account.entity';
-import { RefreshToken, TokenPlayer } from '../token';
+import { SpotifyRefreshToken, SpotifyToken } from '../token';
 import {
   CurrentPlaybackResponse,
   SpotifyTrackCategory,
@@ -100,7 +100,7 @@ export class SpotifyApiService implements OnModuleInit {
 
     const response = await firstValueFrom(
       this.http
-        .post<TokenPlayer>(
+        .post<SpotifyToken>(
           'https://accounts.spotify.com/api/token',
           querystring(form),
           {
@@ -299,7 +299,7 @@ export class SpotifyApiService implements OnModuleInit {
 
     const response = await firstValueFrom(
       this.http
-        .post<RefreshToken>(
+        .post<SpotifyRefreshToken>(
           'https://accounts.spotify.com/api/token',
           querystring(form),
           {

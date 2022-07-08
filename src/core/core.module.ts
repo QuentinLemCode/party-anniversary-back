@@ -1,26 +1,25 @@
 import { HttpModule } from '@nestjs/axios';
-import { ScheduleModule } from '@nestjs/schedule';
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { env } from 'process';
-import { jwtConstants } from './core.constant';
-import DatabaseLogger from './database.logger';
 import { UsersModule } from '../users/users.module';
-import { SettingsService } from './settings/settings.service';
+import DatabaseLogger from './database.logger';
 import { SettingsController } from './settings/settings.controller';
 import { Settings } from './settings/settings.entity';
+import { SettingsService } from './settings/settings.service';
 
 @Global()
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     JwtModule.register({
-      secret: jwtConstants.secret,
-      signOptions: { expiresIn: '180m' },
+      secret: env.JWT_SECRET ?? 'secret',
+      signOptions: { expiresIn: env.JWT_EXPIRATION ?? '10m' },
     }),
     HttpModule,
-    ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: env.DATABASE_HOST || 'localhost',

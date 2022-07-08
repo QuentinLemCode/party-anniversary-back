@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { randomBytes } from 'crypto';
+import { randomBytes, randomUUID } from 'crypto';
 import { Repository } from 'typeorm';
 import { hashPassword } from '../utils/hash';
 import { User } from './user.entity';
@@ -90,6 +90,22 @@ export class UsersService {
 
   resetLoginTry(user: User) {
     user.loginTries = 0;
+    return this.users.save(user);
+  }
+
+  async generateRefreshUUID(id: number) {
+    const user = await this.findById(id);
+    if (!user) throw new NotFoundException('User not found');
+    const uuid = randomUUID();
+    user.refresh_token_id = uuid;
+    await this.users.save(user);
+    return uuid;
+  }
+
+  async removeRefreshUUID(id: number) {
+    const user = await this.findById(id);
+    if (!user) throw new NotFoundException('User not found');
+    user.refresh_token_id = null;
     return this.users.save(user);
   }
 

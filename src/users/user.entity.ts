@@ -59,19 +59,22 @@ export class User {
   public updated_at: Date;
 
   @Column({
+    type: 'varchar',
     nullable: true,
   })
-  password: string;
+  password: string | null;
 
   @Column({
+    type: 'varchar',
     nullable: false,
   })
   salt: string;
 
   @Column({
+    type: 'varchar',
     nullable: true,
   })
-  challenge: string;
+  challenge: string | null;
 
   @Column({
     default: 0,
@@ -82,6 +85,12 @@ export class User {
     default: false,
   })
   locked: boolean;
+
+  @Column({
+    type: 'varchar',
+    nullable: true,
+  })
+  refresh_token_id: string | null;
 
   @OneToMany(() => Queue, (queue) => queue.user)
   queued_musics: Queue[];
