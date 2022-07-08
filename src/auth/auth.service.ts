@@ -13,7 +13,6 @@ import { UserLogin } from './auth.interface';
 export class AuthService {
   constructor(private users: UsersService, private jwt: JwtService) {}
 
-  // TODO return right code when IP has changed
   async validateUser(
     name: string,
     ip: string,
