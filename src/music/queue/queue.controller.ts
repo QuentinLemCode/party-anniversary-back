@@ -17,8 +17,15 @@ import { SettingsService } from '../../core/settings/settings.service';
 import { UserRole } from '../../users/user.entity';
 import { UsersService } from '../../users/users.service';
 import { Music } from '../music.entity';
+import { Backlog } from './backlog.entity';
 import { QueueEngineService } from './queue-engine/queue-engine.service';
+import { Queue } from './queue.entity';
 import { QueueService } from './queue.service';
+
+interface QueueResponse {
+  queue: Queue[];
+  backlog: Backlog | null;
+}
 
 @Controller('queue')
 export class QueueController {
@@ -30,8 +37,13 @@ export class QueueController {
   ) {}
 
   @Get()
-  getQueue() {
-    return this.queue.get();
+  async getQueue(): Promise<QueueResponse> {
+    const queue = await this.queue.get();
+    const backlog = await this.queue.getNominatedBacklog();
+    return {
+      queue,
+      backlog,
+    };
   }
 
   @UseGuards(AuthGuard('jwt'))

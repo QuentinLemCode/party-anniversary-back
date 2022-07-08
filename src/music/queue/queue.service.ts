@@ -143,6 +143,10 @@ export class QueueService implements OnModuleInit {
     });
   }
 
+  getNominatedBacklog(): Backlog | null {
+    return this.nextInBacklog;
+  }
+
   // state management
 
   public async setPlaying(queue: Queue) {
@@ -185,6 +189,7 @@ export class QueueService implements OnModuleInit {
     return this.backlog
       .createQueryBuilder('backlog')
       .select('backlog')
+      .leftJoinAndSelect('backlog.music', 'music')
       .andWhere('backlog.play_count = :playCount', {
         playCount: minimumPlayCount.min,
       })
