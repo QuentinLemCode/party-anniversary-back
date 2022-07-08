@@ -72,11 +72,13 @@ export class Queue {
   @Column({ type: 'int', nullable: false })
   userId: number;
 
-  @ManyToOne(() => User, (user) => user.queued_musics)
+  @ManyToOne(() => User, (user) => user.queued_musics, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user: User;
 
-  @ManyToMany(() => User, (user) => user.forward_votes_music)
+  @ManyToMany(() => User, (user) => user.forward_votes_music, {
+    onDelete: 'CASCADE',
+  })
   @JoinTable()
   forward_vote_users: User[];
 
