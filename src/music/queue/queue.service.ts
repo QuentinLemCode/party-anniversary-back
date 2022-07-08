@@ -61,7 +61,7 @@ export class QueueService implements OnModuleInit {
   }
 
   async popBacklog() {
-    const backlog = await this.getBacklog();
+    const backlog = this.nextInBacklog || (await this.nominateFromBacklog());
     if (!backlog) {
       return null;
     }
@@ -76,11 +76,9 @@ export class QueueService implements OnModuleInit {
   }
 
   async getBacklog() {
-    if (this.nextInBacklog) {
-      return this.nextInBacklog;
-    }
-    this.nextInBacklog = await this.nominateFromBacklog();
-    return this.nextInBacklog;
+    return this.backlog.find({
+      relations: ['music'],
+    });
   }
 
   // features
@@ -96,6 +94,10 @@ export class QueueService implements OnModuleInit {
     queueOrId.status = Status.CANCELLED;
     await this.queue.save(queueOrId);
     return this.queue.softRemove(queueOrId);
+  }
+
+  deleteBacklog(id: string | number) {
+    return this.backlog.delete({ id: +id });
   }
 
   async vote(queueOrId: Queue | string | number, user: User) {
@@ -182,11 +184,11 @@ export class QueueService implements OnModuleInit {
     }
     return this.backlog
       .createQueryBuilder('backlog')
-      .select('backlog.*')
+      .select('backlog')
       .andWhere('backlog.play_count = :playCount', {
         playCount: minimumPlayCount.min,
       })
-      .orderBy('RANDOM()')
+      .orderBy('RAND()')
       .getOne();
   }
 

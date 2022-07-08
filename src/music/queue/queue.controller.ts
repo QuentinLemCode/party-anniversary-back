@@ -71,6 +71,13 @@ export class QueueController {
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(UserRole.ADMIN)
+  @Delete('backlog/:id')
+  deleteBacklog(@Param('id') id: string) {
+    return this.queue.deleteBacklog(id);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Get('backlog')
   getBackLog() {
     return this.queue.getBacklog();
