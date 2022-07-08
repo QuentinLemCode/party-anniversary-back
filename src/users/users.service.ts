@@ -49,6 +49,7 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+    user.loginTries = 0;
     user.locked = false;
     await this.users.save(user);
   }
