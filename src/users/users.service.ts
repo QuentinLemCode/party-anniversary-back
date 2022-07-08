@@ -43,7 +43,6 @@ export class UsersService {
         'role',
         'locked',
         'noIPverification',
-        'deleted_at',
         'created_at',
         'updated_at',
         'ip',

@@ -2,7 +2,6 @@ import {
   BeforeInsert,
   BeforeUpdate,
   Column,
-  DeleteDateColumn,
   Entity,
   Index,
   ManyToMany,
@@ -28,13 +27,6 @@ export class User {
     this.updated_at = new Date();
     this.created_at = new Date();
   }
-
-  @DeleteDateColumn({
-    precision: null,
-    type: 'timestamp',
-    default: () => null,
-  })
-  deleted_at: Date;
 
   @PrimaryGeneratedColumn()
   id: number;
