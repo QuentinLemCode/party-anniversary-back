@@ -25,14 +25,7 @@ export class UsersService {
   }
 
   async delete(id: number) {
-    const user = await this.users.findOneBy({ id });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    // because typeorm decorator doesn't work with soft delete
-    user.ip = null;
-    await this.users.save(user);
-    return this.users.softRemove(user);
+    return this.users.delete(id);
   }
 
   getAll() {
