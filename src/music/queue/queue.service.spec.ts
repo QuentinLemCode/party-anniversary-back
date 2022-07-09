@@ -83,8 +83,11 @@ describe('QueueService', () => {
     });
     spySpotifyApiService.getPlaybackState = jest.fn(() => {
       return Promise.resolve({
-        registered: true,
-        currentPlayback: mockPlaybackResponse as CurrentPlaybackResponse,
+        status: 'success',
+        data: {
+          registered: true,
+          currentPlayback: mockPlaybackResponse as CurrentPlaybackResponse,
+        },
       });
     });
     service = module.get<QueueService>(QueueService);
