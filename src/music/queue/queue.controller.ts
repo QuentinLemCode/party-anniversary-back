@@ -62,7 +62,7 @@ export class QueueController {
         });
       }
     }
-    return this.queue.push(music, user.userId);
+    return this.queue.push(music, user.userId, user.role === UserRole.ADMIN);
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)

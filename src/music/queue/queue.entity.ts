@@ -82,6 +82,9 @@ export class Queue {
   @JoinTable()
   forward_vote_users: User[];
 
+  @Column({ type: 'int', nullable: false, default: 0 })
+  priority: number;
+
   play() {
     this.status = Status.PLAYING;
   }

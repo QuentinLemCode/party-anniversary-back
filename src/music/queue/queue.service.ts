@@ -29,7 +29,7 @@ export class QueueService implements OnModuleInit {
 
   // queue basic functions
 
-  async push(music: Music, userId: number) {
+  async push(music: Music, userId: number, isAdmin = false) {
     const alreadyInQueue = await this.findInPendingQueue(music.uri);
     if (alreadyInQueue) {
       throw new BadRequestException({ cause: 'queue' });
@@ -37,6 +37,9 @@ export class QueueService implements OnModuleInit {
     const queue = new Queue();
     queue.music = music;
     queue.userId = userId;
+    queue.priority = isAdmin
+      ? 0
+      : (await this.countQueuedItemForUser(userId)) + 1;
     return this.queue.save(queue);
   }
 
@@ -57,7 +60,9 @@ export class QueueService implements OnModuleInit {
     }
     const [first] = queue;
     first.status = Status.PLAYING;
-    return this.queue.save(first);
+    await this.queue.save(first);
+    await this.updatePriority(first.userId);
+    return first;
   }
 
   async popBacklog() {
@@ -93,7 +98,8 @@ export class QueueService implements OnModuleInit {
     }
     queueOrId.status = Status.CANCELLED;
     await this.queue.save(queueOrId);
-    return this.queue.softRemove(queueOrId);
+    await this.queue.softRemove(queueOrId);
+    await this.updatePriority(queueOrId.userId);
   }
 
   deleteBacklog(id: string | number) {
@@ -203,6 +209,7 @@ export class QueueService implements OnModuleInit {
   private getPendingQueue(take = 50) {
     return this.queue.find({
       order: {
+        priority: 'ASC',
         created_at: 'ASC',
       },
       take,
@@ -224,7 +231,24 @@ export class QueueService implements OnModuleInit {
       .select(['queue.status', 'music', 'user.name', 'user.id', 'queue.id'])
       .where('queue.status IN (:status)', { status: whereStatus })
       .orderBy('queue.status', 'DESC')
-      .addOrderBy('queue.updated_at', 'ASC')
+      .addOrderBy('queue.priority', 'ASC')
+      .addOrderBy('queue.created_at', 'ASC')
       .getMany();
+  }
+
+  private async updatePriority(userId: number) {
+    const otherQueues = await this.queue.find({
+      where: {
+        userId: userId,
+      },
+      order: {
+        priority: 'ASC',
+        created_at: 'ASC',
+      },
+    });
+    otherQueues.forEach((queue, index) => {
+      queue.priority = index + 1;
+    });
+    this.queue.save(otherQueues);
   }
 }
