@@ -1,13 +1,18 @@
-import { GoneException, Injectable, Logger } from '@nestjs/common';
+import {
+  GoneException,
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { setTimeout } from 'timers';
+import { SettingsService } from '../../../core/settings/settings.service';
 import { User, UserRole } from '../../../users/user.entity';
 import { SpotifyApiService } from '../../spotify/spotify-api/spotify-api.service';
 import { CurrentPlaybackResponse } from '../../spotify/types/spotify-interfaces';
-import { SettingsService } from '../../../core/settings/settings.service';
+import { Backlog } from '../backlog.entity';
 import { Queue } from '../queue.entity';
 import { QueueService } from '../queue.service';
-import { Backlog } from '../backlog.entity';
 
 export interface StartingStatus {
   started: boolean;
@@ -206,7 +211,11 @@ export class QueueEngineService {
   }
 
   private async getPlayState() {
-    const playState = await this.spotify.getPlaybackState(true);
+    const response = await this.spotify.getPlaybackState(true);
+    if (response.status === 'error' || !response.data) {
+      throw new ServiceUnavailableException();
+    }
+    const playState = response.data;
     if (!playState.registered || !playState.currentPlayback.is_playing) {
       const error = playState.registered
         ? 'Music not playing'

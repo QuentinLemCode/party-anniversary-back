@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Raw, Repository } from 'typeorm';
-import { User } from '../../users/user.entity';
+import { User, UserRole } from '../../users/user.entity';
 import { Music } from '../music.entity';
 import { Backlog } from './backlog.entity';
 import { Queue, Status } from './queue.entity';
@@ -95,6 +95,9 @@ export class QueueService implements OnModuleInit {
         throw new NotFoundException('Queue not found');
       }
       queueOrId = queue;
+    }
+    if (queueOrId.status !== Status.PENDING) {
+      throw new BadRequestException({ cause: 'status' });
     }
     queueOrId.status = Status.CANCELLED;
     await this.queue.save(queueOrId);
@@ -245,10 +248,14 @@ export class QueueService implements OnModuleInit {
         priority: 'ASC',
         created_at: 'ASC',
       },
+      relations: ['user'],
     });
     otherQueues.forEach((queue, index) => {
+      if (queue.user.role === UserRole.ADMIN) {
+        queue.priority = 0;
+      }
       queue.priority = index + 1;
     });
-    this.queue.save(otherQueues);
+    return this.queue.save(otherQueues);
   }
 }

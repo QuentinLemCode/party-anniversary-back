@@ -7,10 +7,10 @@ import {
 } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import type { AxiosResponse, AxiosRequestConfig } from 'axios';
+import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { setupCache } from 'axios-cache-adapter';
 import { env } from 'process';
-import { catchError, firstValueFrom, map, of, pipe, throwError } from 'rxjs';
+import { catchError, firstValueFrom, map, of, pipe, retry } from 'rxjs';
 import { Repository } from 'typeorm';
 import { querystring } from '../../../utils/querystring';
 import { SpotifyAccount } from '../spotify-account.entity';
@@ -127,11 +127,13 @@ export class SpotifyApiService implements OnModuleInit {
     this.startTokenRenewInterval();
   }
 
-  async getPlaybackState(noCache = false): Promise<PlaybackState> {
+  async getPlaybackState(
+    noCache = false,
+  ): Promise<APIResult<PlaybackState | void>> {
     if (!this.isAccountRegistered) {
-      return {
+      return this.success({
         registered: false,
-      };
+      });
     }
 
     const options: AxiosRequestConfig = {
@@ -152,15 +154,16 @@ export class SpotifyApiService implements OnModuleInit {
           options,
         )
         .pipe(
-          catchError((err) => {
-            this.logError(err);
-            return throwError(() => err);
-          }),
+          retry({ count: 5, delay: 1000 }),
           map((response) => {
-            return {
+            return this.success({
               registered: true,
               currentPlayback: response.data,
-            };
+            });
+          }),
+          catchError((err) => {
+            this.logError(err);
+            return of(this.error('unknown'));
           }),
         ),
     );
@@ -179,7 +182,7 @@ export class SpotifyApiService implements OnModuleInit {
             headers: this.getAuthorizationHeaderForCurrentPlayer(),
           },
         )
-        .pipe(this.pipeResponse()),
+        .pipe(retry({ count: 5, delay: 1000 }), this.pipeResponse()),
     );
   }
 
@@ -199,7 +202,7 @@ export class SpotifyApiService implements OnModuleInit {
             },
           },
         )
-        .pipe(this.pipeResponse()),
+        .pipe(retry({ count: 5, delay: 1000 }), this.pipeResponse()),
     );
   }
 
@@ -219,6 +222,7 @@ export class SpotifyApiService implements OnModuleInit {
           },
         )
         .pipe(
+          retry({ count: 5, delay: 1000 }),
           this.pipeResponse((status) => {
             if (status === 404) {
               return this.error('no-device');
