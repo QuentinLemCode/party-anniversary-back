@@ -117,6 +117,14 @@ export class UsersService {
     return this.users.save(user);
   }
 
+  async toggleIPVerification(id: number) {
+    const user = await this.findById(id);
+    if (!user) throw new NotFoundException('User not found');
+    user.noIPverification = !user.noIPverification;
+    user.ip = null;
+    return this.users.save(user);
+  }
+
   private async hasAlreadyIp(ip: string) {
     const userWithIp = await this.users.findOneBy({ ip });
     if (userWithIp !== null) {

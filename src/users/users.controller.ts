@@ -56,4 +56,11 @@ export class UsersController {
   unlock(@Param('id') id: string) {
     return this.users.unlock(+id);
   }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Post(':id/toggle-ip-verification')
+  toggleIPVerification(@Param('id') id: string) {
+    return this.users.toggleIPVerification(+id);
+  }
 }
