@@ -17,6 +17,7 @@ export class UsersService {
   ) {}
 
   find(name: string) {
+    name = this.formatUsername(name);
     return this.users.findOne({ where: { name } });
   }
 
@@ -69,7 +70,7 @@ export class UsersService {
     await this.hasAlreadyIp(ip);
     const user = this.users.create();
     user.salt = randomBytes(16).toString('base64');
-    user.name = registerDTO.name;
+    user.name = this.formatUsername(registerDTO.name);
     user.ip = ip;
     user.challenge = hashPassword(registerDTO.challenge, user.salt);
     return this.users.save(user);
@@ -130,5 +131,13 @@ export class UsersService {
     if (userWithIp !== null) {
       throw new BadRequestException({ cause: 'ip' });
     }
+  }
+
+  private formatUsername(username: string) {
+    return username
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9\-]/gi, '');
   }
 }
