@@ -221,7 +221,7 @@ export class QueueService implements OnModuleInit {
         'queue.forward_votes',
         'queue.forward_vote_users',
       )
-      .select(['queue.status', 'music', 'user.name', 'queue.id'])
+      .select(['queue.status', 'music', 'user.name', 'user.id', 'queue.id'])
       .where('queue.status IN (:status)', { status: whereStatus })
       .orderBy('queue.status', 'DESC')
       .addOrderBy('queue.updated_at', 'ASC')

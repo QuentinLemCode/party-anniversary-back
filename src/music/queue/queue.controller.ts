@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   Post,
@@ -50,9 +51,6 @@ export class QueueController {
   @Post()
   async pushToQueue(@Body() music: Music, @Req() req: Request) {
     const user = this.getUser(req);
-    if (!user) {
-      throw new BadRequestException('User not found in request');
-    }
     if (user.role !== UserRole.ADMIN) {
       if (
         (await this.queue.countQueuedItemForUser(user.userId)) >=
@@ -68,9 +66,21 @@ export class QueueController {
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(UserRole.ADMIN)
   @Delete(':id')
-  deleteFromQueue(@Param('id') id: string) {
+  async deleteFromQueue(@Param('id') id: string, @Req() req: Request) {
+    const queuedMusics = await this.users.getQueuedMusicForUser(
+      this.getUser(req).userId,
+    );
+    if (queuedMusics === null) {
+      throw new BadRequestException('User not found in database');
+    }
+    if (
+      this.getUser(req).role !== UserRole.ADMIN &&
+      queuedMusics.find((m) => m.id === +id) === undefined
+    ) {
+      throw new ForbiddenException('You are not allowed to delete this music');
+    }
+
     return this.queue.delete(id);
   }
 

@@ -44,6 +44,14 @@ export class UsersService {
     });
   }
 
+  async getQueuedMusicForUser(id: number) {
+    const user = await this.users.findOne({
+      where: { id },
+      relations: ['queued_musics'],
+    });
+    return user?.queued_musics ?? null;
+  }
+
   async unlock(id: number) {
     const user = await this.users.findOneBy({ id });
     if (!user) {
