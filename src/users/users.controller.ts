@@ -32,6 +32,10 @@ export class UsersController {
     if (!ip) {
       throw new BadRequestException('Unable to retrieve IP adress');
     }
+    const isUserExisting = await this.users.find(registerUserDTO.name);
+    if (isUserExisting) {
+      throw new BadRequestException({ cause: 'exist' });
+    }
     const user = await this.users.register(registerUserDTO, ip);
     return this.auth.login(user);
   }
