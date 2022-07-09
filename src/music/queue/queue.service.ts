@@ -143,7 +143,10 @@ export class QueueService implements OnModuleInit {
     });
   }
 
-  getNominatedBacklog(): Backlog | null {
+  async getNominatedBacklog() {
+    if (!this.nextInBacklog) {
+      this.nextInBacklog = await this.nominateFromBacklog();
+    }
     return this.nextInBacklog;
   }
 
