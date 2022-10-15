@@ -20,7 +20,8 @@ export class SettingsController {
   async setSettings(
     @Body() voteSettings: SettingsQuery,
   ): Promise<SettingsQuery> {
-    await this.settings.setMaxVotes(voteSettings.maxVotes);
+    await this.settings.setMaxVotes(voteSettings.maxVotes || this.settings.maxVotes);
+    await this.settings.setMaxQueuableSongPerUser(voteSettings.maxQueuableSongPerUser || this.settings.maxQueuableSongPerUser)
     return {
       maxVotes: this.settings.maxVotes,
       maxQueuableSongPerUser: this.settings.maxQueuableSongPerUser,
